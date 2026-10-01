@@ -83,3 +83,5 @@ Decisión: desarrollo ahora; valorar pasar a producción en la rama 13 si hay ti
 - **Verificado:** `https://api.podcast.scuda.es/health` con Let's Encrypt; instanta sigue respondiendo 200; sin puertos publicados; `podcast-api` 95 MB y `podcast-postgres` 48 MB en reposo; backup manual creado y cron instalado.
 - **Netlify:** el autor creó el sitio importando el repo (despliegue continuo desde `main`, sin builds manuales) y las variables `VITE_*`. Login E2E en `https://scuda-podcast.netlify.app` → `/me` 200 en producción → `/onboarding`.
 - **DNS:** el *Target* del CNAME es un nombre de host (`scuda-podcast.netlify.app`), sin `https://`.
+
+> **Actualización 2026-10-01:** el bloque en el Caddy de instanta se sustituyó por un proxy neutral (`deploy/edge/`, ADR 0002 "Cambio"); `Caddyfile.snippet` ya no existe y la red externa es `edge`.

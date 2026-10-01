@@ -1,5 +1,5 @@
 # Production on the shared Hetzner VPS (runbook: deploy/README.md).
-# No published ports: instanta's Caddy reaches podcast-api over the `edge` network.
+# No published ports: the shared edge proxy (deploy/edge) reaches podcast-api over `edge`.
 name: podcast
 
 services:
@@ -32,7 +32,7 @@ services:
 networks:
   edge:
     external: true
-    name: instanta_default
+    name: edge
 
 volumes:
   podcast_audio:

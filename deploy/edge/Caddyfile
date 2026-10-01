@@ -1,0 +1,21 @@
+# One block per site. Upstreams are container names on the `edge` network.
+# After editing: validate, then `docker restart edge-caddy` (see deploy/README.md).
+
+# Instanta. No access logs: its checkout URLs carry the client_secret (Instanta ADR-010).
+instanta.scuda.es {
+	encode zstd gzip
+	redir /demo /demo/
+	# Demo store (Instanta ADR-012): /demo/… goes to its container, without the prefix.
+	handle_path /demo/* {
+		reverse_proxy instanta-demo-store-1:4000
+	}
+	handle {
+		reverse_proxy instanta-app-1:3000
+	}
+}
+
+# Personal Podcast API.
+api.podcast.scuda.es {
+	encode zstd gzip
+	reverse_proxy podcast-api:8000
+}
