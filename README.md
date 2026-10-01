@@ -22,6 +22,17 @@ uv run pytest                        # usa la base podcast_test
 uv run ruff check . && uv run ruff format --check .
 ```
 
+Frontend (en otra terminal):
+
+```bash
+cd frontend
+npm install
+cp .env.example .env.local           # o `clerk env pull` (luego borrar CLERK_SECRET_KEY: el frontend no la usa)
+npm run dev                          # http://localhost:5173
+npm test && npm run lint && npm run build
+npm run gen:api                      # regenera src/lib/api-types.ts (con la API en marcha)
+```
+
 ### Clerk
 `CLERK_ISSUER` es la *Frontend API URL* de la aplicación de Clerk. Los *custom claims* del token de sesión (`metadata`, `email`, `name`) se configuran una vez con el [CLI de Clerk](https://clerk.com/docs/cli):
 

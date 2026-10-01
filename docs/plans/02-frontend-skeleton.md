@@ -12,7 +12,7 @@ Concepto: **"estudio de radio nocturno"**. Oscuro por defecto (con modo claro), 
 - Fuentes de Google Fonts: display serif expresiva (p. ej. *Instrument Serif* o *Fraunces*) + UI sans (*Inter* o *Geist*). Elegir viendo una maqueta.
 - Tokens CSS en `index.css` (`--background`, `--foreground`, `--accent`, `--muted`…) en el formato de shadcn, con contraste AA comprobado.
 - Movimiento con `motion`: entradas de 150–250 ms, *spring* suave en los chips, respetando `prefers-reduced-motion`.
-- Antes de cerrar el diseño, usar la skill `ecc:frontend-design-direction` (o `improve`) para una crítica, y guardar la decisión en `docs/design.md` (1 página: paleta, tipos, espaciado, movimiento, ejemplos de componentes).
+- Antes de cerrar el diseño, usar la skill `ecc:frontend-design-direction` para una crítica, y guardar la decisión en `docs/design.md` (1 página: paleta, tipos, espaciado, movimiento, ejemplos de componentes).
 
 ## Commits (en orden)
 1. **`chore(frontend): scaffold Vite React TS app`**: `npm create vite@latest frontend -- --template react-ts`; alias `@` → `src` en `vite.config.ts` y `tsconfig`; ESLint por defecto.
@@ -35,7 +35,7 @@ Concepto: **"estudio de radio nocturno"**. Oscuro por defecto (con modo claro), 
 ## Verificación final
 - `npm run lint && npm run build` en verde.
 - Con backend local: login con Google → `Home` muestra el email de `/me` → la fila existe en `users`. **Primera prueba de punta a punta del JWT real** (valida `azp` con `http://localhost:5173`).
-- Revisión visual a 1440 px y 390 px (landing y AppShell) + skill `improve`.
+- Revisión visual a 1440 px y 390 px (landing y AppShell) + revisión de diseño (`ecc:frontend-design-direction` + Lighthouse).
 
 ## Criterios de aceptación
 - [ ] Login y logout funcionan; las rutas protegidas redirigen sin sesión.
@@ -45,3 +45,18 @@ Concepto: **"estudio de radio nocturno"**. Oscuro por defecto (con modo claro), 
 ## Riesgos y notas
 - **Paquete de Clerk:** desde Core 3 el paquete es `@clerk/react` (no `@clerk/clerk-react`). Comprobado en la documentación de Clerk el 2026-10-01.
 - **CORS:** si falla, revisar `CORS_ORIGINS` y que la petición lleve la cabecera `Authorization`.
+
+## Notas de implementación (2026-10-01)
+- **Orden de commits:** i18n y el cliente API van *antes* que rutas/AppShell, porque el AppShell usa el selector de idioma y `me.is_admin`.
+- **Plantilla de Vite:** trae `oxlint` en lugar de ESLint (`npm run lint`) y no activaba `strict`: se añadió (`strict` es contrato). El código generado de shadcn (`src/components/ui`) está excluido del lint.
+- **shadcn:** estilo `radix-nova` (Lucide + Geist). Usa el paquete `cn` (oficial de shadcn, sustituye a `clsx` + `tailwind-merge`); verificado antes de aceptarlo.
+- **Fuentes autoalojadas** con fontsource (*Instrument Serif* + *Geist*), no Google Fonts: sin peticiones a terceros.
+- **Clerk:** `clerk init` instaló `@clerk/react` y envolvió la app; además escribió `CLERK_SECRET_KEY` en `frontend/.env.local`, que **se borró** (el frontend no la necesita; Vite solo expondría `VITE_*`, pero mejor no tenerla ahí). Tema `shadcn` de `@clerk/ui`.
+- **Páginas de ramas futuras** (onboarding, episodio, ajustes, admin) son un único `Placeholder` en `App.tsx`; cada rama crea su fichero real. Sin andamiaje vacío.
+- **`openapi-typescript` se ejecuta con `npx`** (`npm run gen:api`): su peer exige TypeScript 5 y la plantilla trae TS 6. `api-types.ts` se versiona.
+- **Movimiento en CSS** (`tw-animate-css` + un `@keyframes` para la onda), no `motion`: no hacía falta todavía. `motion` entra cuando haya transiciones de estado (ramas 7 y 9).
+- **`netlify.toml` en la raíz** con `base = "frontend"` (contrato actualizado).
+- **E2E real:** login en el navegador con un usuario de pruebas → JWT con `azp=http://localhost:5173` aceptado → fila en `users` + `user_signed_up` → redirección a `/onboarding`; con `onboarded_at` puesto, `Home` saluda por el nombre.
+- **Lighthouse (móvil, landing):** accesibilidad 100. Avisos esperables: claves de desarrollo de Clerk y el aviso de React 19 por el `<script>` de `next-themes` (solo en desarrollo).
+- **Bundle:** ~560 kB (casi todo Clerk). Se dividirá cuando entre `recharts` (rama 12), con `import()` de la página de admin.
+- Informe TDD: [`docs/testing/02-frontend-skeleton.tdd.md`](../testing/02-frontend-skeleton.tdd.md).

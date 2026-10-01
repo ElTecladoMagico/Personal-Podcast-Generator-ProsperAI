@@ -61,7 +61,7 @@
 - `seed_mock_metrics.py --reset` en local y en producción → el dashboard muestra tendencias creíbles.
 - Con el interruptor de datos simulados apagado, solo se ven tus datos reales (coherentes con lo que hiciste en la app).
 - Revisar que cada número de una tarjeta coincide con una consulta manual (3 comprobaciones).
-- `improve` + revisión de accesibilidad de los gráficos (contraste y etiquetas).
+- Revisión de diseño (`ecc:frontend-design-direction` + Lighthouse) + revisión de accesibilidad de los gráficos (contraste y etiquetas).
 
 ## Criterios de aceptación
 - [ ] Todas las métricas de la tabla visibles, con su definición.

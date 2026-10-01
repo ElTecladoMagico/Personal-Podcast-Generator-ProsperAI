@@ -73,7 +73,7 @@
   - el seek por palabra funciona y los capítulos y tarjetas cambian en el momento correcto;
   - los controles del sistema funcionan: teclas multimedia del Mac y pantalla de bloqueo del móvil con Safari/Chrome.
 - La tabla `events` registra la secuencia esperada de una escucha completa con un salto y un 👍.
-- Chrome, Safari y Firefox; 1440/390; `improve` + `thermo-nuclear-code-quality-review`.
+- Chrome, Safari y Firefox; 1440/390; `ecc:frontend-design-direction` + Lighthouse + `thermo-nuclear-code-quality-review`.
 
 ## Criterios de aceptación
 - [ ] Transcripción sincronizada a nivel de palabra (o turno como *fallback*) sin tirones a 60 fps.

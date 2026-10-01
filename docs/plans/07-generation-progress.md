@@ -46,7 +46,7 @@
 ## Verificación final
 - Local: onboarding provisional (preferencias insertadas por SQL o con el CLI) → "Generar ahora" → se ven las 7 etapas con detalles reales → "Escuchar" lleva a `/episodes/:id` (vacía hasta la rama 9).
 - Forzar un fallo (key de ElevenLabs incorrecta) → `failed` en `recording` → corregir → "Reintentar" → termina sin repetir el editor.
-- Revisión visual 1440/390 + `improve`.
+- Revisión visual 1440/390 + revisión de diseño (`ecc:frontend-design-direction` + Lighthouse).
 
 ## Criterios de aceptación
 - [ ] No se pueden lanzar dos generaciones a la vez para el mismo usuario, ni más de 5 manuales al día.
