@@ -1,6 +1,6 @@
 # 0006 · Fuentes de noticias: RSS + APIs + scraping selectivo
 
-**Estado:** Aceptada (con spike previo sobre Google News)
+**Estado:** Aceptada (spike de Google News superado el 2026-10-01)
 
 ## Contexto
 El enunciado pide "pull news from APIs or scraping". Los intereses son texto libre, en cualquier idioma. Para un buen guion necesitamos el **texto completo** de las historias elegidas, no solo titulares.
@@ -30,3 +30,10 @@ Cada fuente es una función `fetch(interest, lang) -> list[Candidate]`. Sin clas
 - **Scraping fallido o con muro de pago**: el editor recibe candidatos de reserva y, si falla la extracción, se usa el extracto del RSS o se elige la siguiente historia.
 - **Licencias**: usamos el texto solo para generar un resumen propio, citamos el medio y enlazamos el original en las notas del episodio. Nunca republicamos el artículo.
 - **Caché**: los artículos se cachean por URL para no repetir descargas entre usuarios con intereses parecidos.
+
+## Resultado del spike (2026-10-01)
+Detalle y salida completa en [`docs/plans/04-resultados.md`](../plans/04-resultados.md).
+- Desde la UE (tanto en España como en el VPS de Helsinki), Google redirige los enlaces del RSS a su **muro de consentimiento de cookies**: ni las redirecciones HTTP ni el paquete `googlenewsdecoder` resuelven ninguno (0/60).
+- Haciendo lo mismo que el navegador (cookie de consentimiento `SOCS` + firma de la página + `POST batchexecute`) se resuelven **60/60**, en 0,1–0,2 s y sin 429. El **70 %** tiene más de 1.500 caracteres de texto extraíble.
+- **Decisión:** Google News se queda. Resolución propia (sin dependencia) y **solo para las historias elegidas** por el editor, en el paso 3.
+- **Riesgo:** endpoint interno de Google, puede cambiar sin aviso → test `live`, y Guardian/HN y las historias de reserva cubren la caída. Plan B: GNews API.

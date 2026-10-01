@@ -16,7 +16,7 @@ def gather_candidates(prefs: Preferences, since: datetime) -> list[Candidate]
   - **Deduplicación:** misma URL normalizada, o título normalizado (minúsculas, sin puntuación) idéntico.
   - **Exclusión:** si `avoid` aparece en el título o el extracto (*case-insensitive*), fuera.
   - **Tope:** 60 candidatos, repartidos de forma equilibrada por interés y priorizando los de más peso.
-- **Google News:** `feedparser.parse(url)`. URL de búsqueda con `hl`/`gl`/`ceid` derivados de `lang` (tabla pequeña: es→ES, en→US, fr→FR, de→DE, it→IT, pt→BR; otros → en-US). Título sin el sufijo ` - Medio`. Resolución de enlaces según el resultado del spike 04: **solo para los elegidos, en `extract.py`** si así se decidió.
+- **Google News:** `feedparser.parse(url)`. URL de búsqueda con `hl`/`gl`/`ceid` derivados de `lang` (tabla pequeña: es→ES, en→US, fr→FR, de→DE, it→IT, pt→BR; otros → en-US). Título sin el sufijo ` - Medio`; `url` = el enlace `news.google.com/rss/articles/…` tal cual (el editor no necesita la URL real). **Resolución (spike 04, [resultados](04-resultados.md)):** `resolve_google_news(link, client) -> str | None` en `sources.py`, con la vía c del spike (cookie `SOCS` + firma de la página + `POST batchexecute`). La llama `get_article` **solo** cuando el host es `news.google.com`, es decir, solo para las historias elegidas. Sin `googlenewsdecoder` (no funciona desde la UE).
 - **Guardian:** `GET https://content.guardianapis.com/search` con `q`, `from-date`, `order-by=relevance`, `show-fields=bodyText,trailText,thumbnail`, `page-size`, `api-key`. `text = bodyText[:6000]`.
 - **HN (Algolia):** `GET https://hn.algolia.com/api/v1/search?query=…&tags=story&numericFilters=created_at_i>{ts},points>20&hitsPerPage=…`. Se ignoran los ítems sin `url` (Ask HN).
 - `since` = fecha del último episodio `ready` del usuario, o hace 48 h (diario) / 8 días (semanal). Mínimo 24 h.
@@ -31,7 +31,7 @@ def get_article(url: str, session) -> ArticleText | None   # usa la tabla articl
 
 ## Commits (en orden)
 1. **`feat(sources): candidate model helpers (normalize, dedupe)`**: `normalize_url`, `normalize_title`, `dedupe` + tests.
-2. **`feat(sources): Google News RSS fetcher`**: + test con un RSS de *fixture* grabado (`tests/fixtures/google_news_es.xml`).
+2. **`feat(sources): Google News RSS fetcher and link resolver`**: + test con un RSS de *fixture* grabado (`tests/fixtures/google_news_es.xml`); test puro del parseo de la respuesta de `batchexecute` (*fixture*) y un test `@pytest.mark.live` que resuelve un enlace real (detecta si Google cambia el endpoint).
 3. **`feat(sources): Guardian fetcher`**: + test con un JSON de *fixture*.
 4. **`feat(sources): Hacker News fetcher`**: + test con un JSON de *fixture*.
 5. **`feat(sources): gather_candidates with parallel fetch, avoid filter and cap`**: + test con las fuentes parcheadas (funciones puras inyectadas como argumento por defecto, para no mockear la red).
