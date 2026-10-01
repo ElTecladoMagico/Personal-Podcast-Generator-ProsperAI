@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from app.sources import (
     normalize_url,
     parse_article_signature,
     parse_batchexecute,
+    parse_exa,
     parse_google_news,
 )
 
@@ -104,3 +106,37 @@ def test_live_google_news_link_resolves_to_publisher():
     assert items, "Google News returned nothing"
     url = resolve_google_news(items[0].url)
     assert url and "google.com" not in url
+
+
+# --- Exa -----------------------------------------------------------------------
+
+
+def test_parse_exa_maps_results_and_keeps_only_useful_text():
+    data = json.loads((FIXTURES / "exa.json").read_text())
+    items = parse_exa(data, "Formula 1")
+
+    assert [c.source for c in items] == ["skysports.com", "the-race.com", "formula1.com", "bbc.com"]
+    assert all(c.origin == "exa" and c.interest == "Formula 1" for c in items)
+    live_blog, article = items[0], items[1]
+    assert live_blog.published_at is None
+    assert live_blog.text is None and live_blog.snippet  # short page: snippet only, scrape later
+    assert article.text and len(article.text) >= 500
+    assert article.published_at is not None and article.published_at.tzinfo is not None
+    assert len(article.snippet) <= 300
+
+
+def test_fetch_exa_without_key_skips_the_call(monkeypatch):
+    from app import sources
+
+    monkeypatch.setattr(sources.settings, "exa_api_key", "")
+    assert sources.fetch_exa("anything", datetime.now(UTC)) == []
+
+
+@pytest.mark.live
+def test_live_exa_returns_recent_articles_with_text():
+    from datetime import timedelta
+
+    from app.sources import fetch_exa
+
+    items = fetch_exa("Formula 1", datetime.now(UTC) - timedelta(days=2))
+    assert items and any(c.text for c in items)

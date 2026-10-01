@@ -10,6 +10,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 import feedparser
 import httpx
 
+from app.config import settings
 from app.schemas import Candidate
 
 USER_AGENT = "PersonalPodcastBot/1.0 (+https://podcast.scuda.es)"
@@ -135,3 +136,50 @@ def resolve_google_news(link: str) -> str | None:
         return parse_batchexecute(reply.text)
     except httpx.HTTPError:
         return None
+
+
+# --- Exa (semantic search with full text; ADR 0006 "Cambio") ----------------------
+
+MIN_TEXT = 500  # shorter pages (live blogs, teasers) get scraped in step 3 instead
+
+
+def parse_exa(data: dict, interest: str) -> list[Candidate]:
+    candidates = []
+    for r in data.get("results", []):
+        text = (r.get("text") or "").strip()
+        published = r.get("publishedDate")
+        candidates.append(
+            Candidate(
+                id="",
+                title=r.get("title") or r["url"],
+                source=urlsplit(r["url"]).netloc.removeprefix("www."),
+                url=r["url"],
+                published_at=datetime.fromisoformat(published) if published else None,
+                snippet=text[:300] or None,
+                origin="exa",
+                interest=interest,
+                text=text if len(text) >= MIN_TEXT else None,
+            )
+        )
+    return candidates
+
+
+def fetch_exa(interest: str, since: datetime, limit: int = 4) -> list[Candidate]:
+    if not settings.exa_api_key:
+        return []
+    # Request shape follows Exa's build-with-exa guidance: only fields the product needs.
+    body = {
+        "query": f"latest news on {interest}",
+        "type": "auto",
+        "numResults": limit,
+        "startPublishedDate": since.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "contents": {"text": {"maxCharacters": 6000}},
+    }
+    r = http.post(
+        "https://api.exa.ai/search",
+        json=body,
+        headers={"x-api-key": settings.exa_api_key},
+        timeout=20,
+    )
+    r.raise_for_status()
+    return parse_exa(r.json(), interest)
