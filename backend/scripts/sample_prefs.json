@@ -1,0 +1,14 @@
+{
+  "interests": [
+    {"topic": "inteligencia artificial", "why": "trabajo en tecnología", "weight": 5},
+    {"topic": "vivienda en España", "weight": 4},
+    {"topic": "Formula 1", "weight": 3},
+    {"topic": "climate tech startups", "weight": 2}
+  ],
+  "avoid": ["horóscopo", "celebrity gossip"],
+  "language": "es",
+  "hosts": [
+    {"name": "Sarah", "voice_id": "EXAVITQu4vr4xnSDxMaL"},
+    {"name": "George", "voice_id": "JBFqnCBsd6RMkjVDRZzb"}
+  ]
+}

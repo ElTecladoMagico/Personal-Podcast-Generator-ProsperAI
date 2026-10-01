@@ -1,7 +1,7 @@
 """Spike (plan 04): can Google News RSS links be resolved to the publisher URL and scraped?
 
-Run: uv run --with feedparser --with trafilatura --with googlenewsdecoder \
-         python scripts/spike_google_news.py
+Run from backend/: uv run --with googlenewsdecoder \
+         python -m scripts.spike_google_news
 """
 
 import json
