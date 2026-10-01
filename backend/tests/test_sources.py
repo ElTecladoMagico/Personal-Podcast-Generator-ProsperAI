@@ -1,6 +1,7 @@
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 
@@ -14,6 +15,7 @@ from app.sources import (
     parse_batchexecute,
     parse_exa,
     parse_google_news,
+    parse_hn,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -140,3 +142,17 @@ def test_live_exa_returns_recent_articles_with_text():
 
     items = fetch_exa("Formula 1", datetime.now(UTC) - timedelta(days=2))
     assert items and any(c.text for c in items)
+
+
+# --- Hacker News -----------------------------------------------------------------
+
+
+def test_parse_hn_skips_ask_hn_and_maps_fields():
+    data = json.loads((FIXTURES / "hn.json").read_text())
+    items = parse_hn(data, "AI")
+
+    assert len(items) == len(data["hits"]) - 1  # the Ask HN post has no URL
+    first, hit = items[0], data["hits"][0]
+    assert first.url == hit["url"] and first.title == hit["title"]
+    assert first.origin == "hn" and first.source == urlsplit(hit["url"]).netloc.removeprefix("www.")
+    assert first.published_at == datetime.fromtimestamp(hit["created_at_i"], UTC)

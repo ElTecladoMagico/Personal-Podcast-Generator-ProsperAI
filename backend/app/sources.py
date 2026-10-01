@@ -183,3 +183,35 @@ def fetch_exa(interest: str, since: datetime, limit: int = 4) -> list[Candidate]
     )
     r.raise_for_status()
     return parse_exa(r.json(), interest)
+
+
+# --- Hacker News (Algolia API) -------------------------------------------------------
+
+
+def parse_hn(data: dict, interest: str) -> list[Candidate]:
+    return [
+        Candidate(
+            id="",
+            title=h["title"],
+            source=urlsplit(h["url"]).netloc.removeprefix("www."),
+            url=h["url"],
+            published_at=datetime.fromtimestamp(h["created_at_i"], UTC),
+            snippet=None,
+            origin="hn",
+            interest=interest,
+        )
+        for h in data.get("hits", [])
+        if h.get("url")  # Ask HN / Show HN text posts have no article
+    ]
+
+
+def fetch_hn(interest: str, since: datetime, limit: int = 5) -> list[Candidate]:
+    params = {
+        "query": interest,
+        "tags": "story",
+        "numericFilters": f"created_at_i>{int(since.timestamp())},points>20",
+        "hitsPerPage": limit,
+    }
+    r = http.get("https://hn.algolia.com/api/v1/search", params=params)
+    r.raise_for_status()
+    return parse_hn(r.json(), interest)
