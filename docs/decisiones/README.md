@@ -12,7 +12,7 @@ Principios que guían todas las decisiones:
 | [0001](0001-stack-fastapi-react.md) | Stack: FastAPI + React/Vite/shadcn | Aceptada |
 | [0002](0002-despliegue.md) | Despliegue: frontend en Netlify, backend en VPS Hetzner compartida (docker compose) | Aceptada |
 | [0003](0003-base-de-datos.md) | Base de datos: PostgreSQL | Aceptada |
-| [0004](0004-almacenamiento-audio.md) | Almacenamiento de audio: volumen local | Propuesta |
+| [0004](0004-almacenamiento-audio.md) | Almacenamiento de audio: volumen local | Aceptada |
 | [0005](0005-autenticacion.md) | Autenticación: Clerk | Aceptada |
 | [0006](0006-fuentes-de-noticias.md) | Fuentes de noticias: RSS + APIs + scraping selectivo | Propuesta |
 | [0007](0007-llm.md) | LLM: OpenAI | Propuesta |
