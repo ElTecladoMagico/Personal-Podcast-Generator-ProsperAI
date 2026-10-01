@@ -124,7 +124,7 @@
       "id": "pipeline",
       "type": "backend",
       "label": "Episode pipeline",
-      "sublabel": "5-step newsroom",
+      "sublabel": "6-step newsroom",
       "pos": [
         700,
         620
@@ -180,7 +180,7 @@
       "id": "openai",
       "type": "external",
       "label": "OpenAI",
-      "sublabel": "editor + writer LLM",
+      "sublabel": "editor · writer · checker",
       "pos": [
         730,
         860
@@ -334,7 +334,7 @@
       "id": "pipeline-openai",
       "from": "pipeline",
       "to": "openai",
-      "label": "2 edit · 4 write",
+      "label": "2 edit · 4 write · 5 verify",
       "variant": "dashed",
       "fromSide": "bottom",
       "toSide": "top"
@@ -343,7 +343,7 @@
       "id": "pipeline-eleven",
       "from": "pipeline",
       "to": "eleven",
-      "label": "5 voice",
+      "label": "6 voice",
       "variant": "dashed",
       "fromSide": "bottom",
       "toSide": "top"
@@ -358,7 +358,8 @@
         "2 Editor LLM: picks 5–7 stories (interests, novelty, already covered, feedback)",
         "3 Research: scrapes full text of picked stories only",
         "4 Scriptwriter LLM: JSON chapters + turns with sourceIds",
-        "5 Hosts: ElevenLabs per chapter, timestamps for synced transcript"
+        "5 Fact-checker LLM: flags unsupported turns, one rewrite round",
+        "6 Hosts: ElevenLabs per chapter, timestamps for synced transcript"
       ]
     },
     {
@@ -367,7 +368,8 @@
       "items": [
         "episode.status drives live progress UI, retries and ops metrics",
         "events table feeds personalization and the /admin dashboard",
-        "FastAPI serves mp3 + RSS from the audio volume"
+        "FastAPI serves mp3 + RSS from the audio volume",
+        "Ask the hosts: API answers a listener question with chapter context (LLM + short TTS)"
       ]
     },
     {

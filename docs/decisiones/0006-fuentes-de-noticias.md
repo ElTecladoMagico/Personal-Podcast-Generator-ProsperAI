@@ -1,6 +1,6 @@
 # 0006 · Fuentes de noticias: RSS + APIs + scraping selectivo
 
-**Estado:** Propuesta (pendiente de un spike sobre Google News)
+**Estado:** Aceptada (con spike previo sobre Google News)
 
 ## Contexto
 El enunciado pide "pull news from APIs or scraping". Los intereses son texto libre, en cualquier idioma. Para un buen guion necesitamos el **texto completo** de las historias elegidas, no solo titulares.

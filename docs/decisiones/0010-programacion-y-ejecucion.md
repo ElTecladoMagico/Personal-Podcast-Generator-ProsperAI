@@ -1,6 +1,6 @@
 # 0010 · Programación y ejecución: APScheduler + tareas en el propio proceso
 
-**Estado:** Propuesta
+**Estado:** Aceptada
 
 ## Contexto
 Cada usuario elige frecuencia y hora (en su zona horaria). También existe "Generar ahora". Una generación tarda 1–3 min.

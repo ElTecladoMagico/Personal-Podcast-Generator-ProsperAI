@@ -6,7 +6,7 @@
 Prioridad nº 2: UX impresionante. Referentes: **Huxe** (la pantalla sigue a la conversación; "saltar" y "cuéntame más"), **NotebookLM** (dos presentadores naturales), **Apple Podcasts/Snipd** (transcripción sincronizada; tocar una frase lleva a ese momento), **Particle/Ground News** (una historia, varios medios), **Spotify** (pantalla completa con color dinámico e identidad), **Overcast** (velocidad y sensación de app nativa).
 
 ## Decisión (por orden de impacto/esfuerzo)
-1. **Generación en directo:** pasos animados que cuentan lo que pasa ("📡 42 artículos… 🧠 El editor eligió 6… ✍️ Escribiendo… 🎙️ Grabando…") vía SSE. La espera es parte del espectáculo.
+1. **Generación en directo:** pasos animados que cuentan lo que pasa ("📡 42 artículos… 🧠 El editor eligió 6… ✍️ Escribiendo… 🔎 Comprobando los hechos… 🎙️ Grabando…") vía SSE. La espera es parte del espectáculo.
 2. **Reproductor a pantalla completa:**
    - avatar del presentador que habla;
    - transcripción tipo karaoke donde tocar una frase salta a ese momento;

@@ -1,6 +1,6 @@
 # 0011 · Entrega: feed RSS privado por usuario
 
-**Estado:** Propuesta
+**Estado:** Aceptada
 
 ## Contexto
 "On a given schedule" se cumple de verdad si el episodio **llega solo** al usuario, sin tener que abrir nuestra web.

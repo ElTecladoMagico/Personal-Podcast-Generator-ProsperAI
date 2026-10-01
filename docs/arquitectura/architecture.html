@@ -5072,11 +5072,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         </g>
         <g data-graph-role="automatic-crossover" style="--step:13">
           <path data-graph-role="automatic-crossover-underlay" d="M 792 700 L 792 772 Q 792 780 800 780 L 812 780 Q 820 780 820 788 L 820 860" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="pipeline" data-edge-to="openai" data-edge-label="2 edit · 4 write" data-edge-key="13" data-edge-id="pipeline-openai" data-composition-points="792,700;792,780;820,780;820,860" data-composition-crossover="halo" data-composition-independent="true" d="M 792 700 L 792 772 Q 792 780 800 780 L 812 780 Q 820 780 820 788 L 820 860" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-edge-from="pipeline" data-edge-to="openai" data-edge-label="2 edit · 4 write · 5 verify" data-edge-key="13" data-edge-id="pipeline-openai" data-composition-points="792,700;792,780;820,780;820,860" data-composition-crossover="halo" data-composition-independent="true" d="M 792 700 L 792 772 Q 792 780 800 780 L 812 780 Q 820 780 820 788 L 820 860" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:14">
           <path data-graph-role="automatic-crossover-underlay" d="M 806 700 L 806 716 Q 806 724 814 724 L 1032 724 Q 1040 724 1040 732 L 1040 860" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="pipeline" data-edge-to="eleven" data-edge-label="5 voice" data-edge-key="14" data-edge-id="pipeline-eleven" data-composition-points="806,700;806,724;1040,724;1040,860" data-composition-crossover="halo" data-composition-independent="true" d="M 806 700 L 806 716 Q 806 724 814 724 L 1032 724 Q 1040 724 1040 732 L 1040 860" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-edge-from="pipeline" data-edge-to="eleven" data-edge-label="6 voice" data-edge-key="14" data-edge-id="pipeline-eleven" data-composition-points="806,700;806,724;1040,724;1040,860" data-composition-crossover="halo" data-composition-independent="true" d="M 806 700 L 806 716 Q 806 724 814 724 L 1032 724 Q 1040 724 1040 732 L 1040 860" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
 
         <!-- Components -->
@@ -5176,15 +5176,15 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="515" y="666" class="t-muted" font-size="9" text-anchor="middle">APScheduler · every 10 min</text>
         </g>
 
-        <g id="node-pipeline" data-node-id="pipeline" data-node-label="Episode pipeline" tabindex="0" role="button" aria-label="Focus Episode pipeline, 5-step newsroom, VPS · docker compose" aria-pressed="false" data-node-kind="backend" data-node-sublabel="5-step newsroom" data-node-context="VPS · docker compose">
-          <title>Episode pipeline · 5-step newsroom · VPS · docker compose</title>
+        <g id="node-pipeline" data-node-id="pipeline" data-node-label="Episode pipeline" tabindex="0" role="button" aria-label="Focus Episode pipeline, 6-step newsroom, VPS · docker compose" aria-pressed="false" data-node-kind="backend" data-node-sublabel="6-step newsroom" data-node-context="VPS · docker compose">
+          <title>Episode pipeline · 6-step newsroom · VPS · docker compose</title>
           <rect x="700" y="620" width="170" height="80" rx="6" class="c-mask"/>
           <rect x="700" y="620" width="170" height="80" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(706 626) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="785" y="658" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Episode pipeline</text>
-        <text data-detail="context" x="785" y="674" class="t-muted" font-size="9" text-anchor="middle">5-step newsroom</text>
+        <text data-detail="context" x="785" y="674" class="t-muted" font-size="9" text-anchor="middle">6-step newsroom</text>
         </g>
 
         <g id="node-audio" data-node-id="audio" data-node-label="Audio volume" tabindex="0" role="button" aria-label="Focus Audio volume, /data/audio/*.mp3, VPS · docker compose" aria-pressed="false" data-node-kind="database" data-node-sublabel="/data/audio/*.mp3" data-node-context="VPS · docker compose">
@@ -5223,8 +5223,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="615" y="906" class="t-muted" font-size="9" text-anchor="middle">article scraping</text>
         </g>
 
-        <g id="node-openai" data-node-id="openai" data-node-label="OpenAI" tabindex="0" role="button" aria-label="Focus OpenAI, editor + writer LLM, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="editor + writer LLM" data-node-context="Architecture component">
-          <title>OpenAI · editor + writer LLM · Architecture component</title>
+        <g id="node-openai" data-node-id="openai" data-node-label="OpenAI" tabindex="0" role="button" aria-label="Focus OpenAI, editor · writer · checker, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="editor · writer · checker" data-node-context="Architecture component">
+          <title>OpenAI · editor · writer · checker · Architecture component</title>
           <rect x="730" y="860" width="180" height="64" rx="6" class="c-mask"/>
           <rect x="730" y="860" width="180" height="64" rx="6" class="c-external" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(736 866) scale(0.6875)">
@@ -5232,7 +5232,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="820" y="890" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">OpenAI</text>
-        <text data-detail="context" x="820" y="906" class="t-muted" font-size="9" text-anchor="middle">editor + writer LLM</text>
+        <text data-detail="context" x="820" y="906" class="t-muted" font-size="9" text-anchor="middle">editor · writer · checker</text>
         </g>
 
         <g id="node-eleven" data-node-id="eleven" data-node-label="ElevenLabs" tabindex="0" role="button" aria-label="Focus ElevenLabs, eleven_v3 dialogue, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="eleven_v3 dialogue" data-node-context="Architecture component">
@@ -5300,13 +5300,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <rect x="672.3" y="704" width="48.4" height="14" rx="3" class="c-mask"/>
           <text x="696.5" y="714" class="t-edge-dashed" font-size="8" text-anchor="middle">3 scrape</text>
         </g>
-        <g data-detail="context" data-edge-from="pipeline" data-edge-to="openai" data-edge-label="2 edit · 4 write" data-edge-key="13" data-edge-id="pipeline-openai">
-          <rect x="798" y="733" width="86.8" height="14" rx="3" class="c-mask"/>
-          <text x="841.4" y="743" class="t-edge-dashed" font-size="8" text-anchor="middle">2 edit · 4 write</text>
+        <g data-detail="context" data-edge-from="pipeline" data-edge-to="openai" data-edge-label="2 edit · 4 write · 5 verify" data-edge-key="13" data-edge-id="pipeline-openai">
+          <rect x="798" y="733" width="139.6" height="14" rx="3" class="c-mask"/>
+          <text x="867.8" y="743" class="t-edge-dashed" font-size="8" text-anchor="middle">2 edit · 4 write · 5 verify</text>
         </g>
-        <g data-detail="context" data-edge-from="pipeline" data-edge-to="eleven" data-edge-label="5 voice" data-edge-key="14" data-edge-id="pipeline-eleven">
+        <g data-detail="context" data-edge-from="pipeline" data-edge-to="eleven" data-edge-label="6 voice" data-edge-key="14" data-edge-id="pipeline-eleven">
           <rect x="901.2" y="704" width="43.6" height="14" rx="3" class="c-mask"/>
-          <text x="923" y="714" class="t-edge-dashed" font-size="8" text-anchor="middle">5 voice</text>
+          <text x="923" y="714" class="t-edge-dashed" font-size="8" text-anchor="middle">6 voice</text>
         </g>
 
         <!-- Boundary labels (foreground masks keep routes out of titles) -->
@@ -5534,7 +5534,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <li>2 Editor LLM: picks 5–7 stories (interests, novelty, already covered, feedback)</li>
           <li>3 Research: scrapes full text of picked stories only</li>
           <li>4 Scriptwriter LLM: JSON chapters + turns with sourceIds</li>
-          <li>5 Hosts: ElevenLabs per chapter, timestamps for synced transcript</li>
+          <li>5 Fact-checker LLM: flags unsupported turns, one rewrite round</li>
+          <li>6 Hosts: ElevenLabs per chapter, timestamps for synced transcript</li>
         </ul>
       </div>
 
@@ -5547,6 +5548,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <li>episode.status drives live progress UI, retries and ops metrics</li>
           <li>events table feeds personalization and the /admin dashboard</li>
           <li>FastAPI serves mp3 + RSS from the audio volume</li>
+          <li>Ask the hosts: API answers a listener question with chapter context (LLM + short TTS)</li>
         </ul>
       </div>
 

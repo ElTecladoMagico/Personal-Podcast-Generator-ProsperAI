@@ -1,6 +1,6 @@
 # 0013 · Dashboard interno de métricas
 
-**Estado:** Propuesta
+**Estado:** Aceptada
 
 ## Contexto
 El enunciado pide un dashboard interno de uso para entender el éxito del producto. Se permiten datos simulados.
