@@ -20,7 +20,7 @@ Esta carpeta es la **fuente de verdad para ejecutar el proyecto**. Si se pierde 
 |---|---|---|---|---|
 | 1 | `feat/backend-skeleton` | [01](01-backend-skeleton.md) | — | ✅ |
 | 2 | `feat/frontend-skeleton` | [02](02-frontend-skeleton.md) | 1 | ✅ |
-| 3 | `chore/deploy` | [03](03-deploy.md) | 1, 2 | ⏳ |
+| 3 | `chore/deploy` | [03](03-deploy.md) | 1, 2 | ✅ |
 | 4 | `spike/google-news` | [04](04-spike-google-news.md) | 1 | ⏳ |
 | 5 | `feat/news-sources` | [05](05-news-sources.md) | 4 | ⏳ |
 | 6 | `feat/episode-pipeline` | [06](06-episode-pipeline.md) | 5 | ⏳ |
@@ -42,8 +42,8 @@ Desplegamos al final de la rama 3 y **después de cada merge** a partir de ahí 
 | ✅ Antes de la rama 1 | *Custom claims* del token de sesión: `{"metadata": "{{user.public_metadata}}", "email": "{{user.primary_email_address}}", "name": "{{user.first_name}}"}`. Hecho por Claude con `clerk config patch` (ver README raíz). | El JWT lleva el rol de admin, el email y el nombre |
 | Antes de la rama 5 | Pedir una key gratuita en https://open-platform.theguardian.com/access/ | `GUARDIAN_API_KEY` (mientras tanto vale `test`) |
 | Antes de la rama 6 | Mirar los créditos restantes de ElevenLabs en su panel | Presupuesto de pruebas |
-| Rama 3 | Crear el sitio en **Netlify** enlazando el repo de GitHub (`scuda-podcast`) | `scuda-podcast.netlify.app` |
-| Rama 3 | DNS: `podcast.scuda.es` CNAME → `scuda-podcast.netlify.app` (el A de `api.podcast.scuda.es` ya está) | HTTPS en ambos |
+| ✅ Rama 3 | Crear el sitio en **Netlify** enlazando el repo de GitHub (`scuda-podcast`) | `scuda-podcast.netlify.app` |
+| ✅ Rama 3 | DNS: `podcast.scuda.es` CNAME → `scuda-podcast.netlify.app` (sin `https://`; el A de `api.podcast.scuda.es` ya está) | HTTPS en ambos |
 | Rama 3 | Clerk producción: añadir los registros DNS que pida Clerk para `scuda.es` (o seguir en modo desarrollo; ver plan 03) | Login sin la marca "Development" |
 | Cuando quieras | Clerk → Configure → *Application name*: cambiar "ProsperAI_challenge" por "Personal Podcast" (es lo que se ve en el modal de login) | Login con la marca del producto |
 | Rama 12 | Marcar tu usuario como admin: Clerk → Users → *public metadata* `{"role":"admin"}` | Acceso a `/admin` |

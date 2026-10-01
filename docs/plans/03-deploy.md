@@ -75,3 +75,11 @@ Decisión: desarrollo ahora; valorar pasar a producción en la rama 13 si hay ti
 - **Recarga de Caddy:** un error de sintaxis tumbaría instanta → siempre `caddy validate` antes de `reload`, y backup del Caddyfile.
 - **RAM:** con ~1,8 GiB libres vamos holgados, pero el pipeline con 3 hilos y ffmpeg puede subir picos → `mem_limit` y vigilar con `docker stats` en la rama 6.
 - **Si instanta recrea su red** (`docker compose down`), nuestro contenedor pierde la conexión → `docker compose up -d` de nuestro compose la recupera. Documentado en el runbook.
+
+## Notas de implementación (2026-10-01)
+- **Dockerfile:** usuario sin privilegios (`app`), `PATH` al venv (sin `uv run` en el arranque) y `curl` para el `HEALTHCHECK`. Imagen de ~1,2 GB por las dependencias de ffmpeg; aceptable con 18 GB libres.
+- **`/opt/podcast/.env`** generado en local (contraseña de Postgres aleatoria, claves del `.env` local) a partir de `deploy/.env.production.example`, subido con `scp` y borrado en local.
+- **Caddy de instanta, sorpresa:** `caddy reload` decía *config is unchanged*. El Caddyfile es un *bind mount de un fichero* y el despliegue de instanta lo había **reemplazado** (otro inode): el contenedor seguía viendo el antiguo. Solución: validar el fichero del host con un Caddy temporal y `docker restart instanta-caddy-1` (~2 s de corte; certificados conservados). Documentado en `deploy/README.md`. Afecta también a los cambios futuros de instanta.
+- **Verificado:** `https://api.podcast.scuda.es/health` con Let's Encrypt; instanta sigue respondiendo 200; sin puertos publicados; `podcast-api` 95 MB y `podcast-postgres` 48 MB en reposo; backup manual creado y cron instalado.
+- **Netlify:** el autor creó el sitio importando el repo (despliegue continuo desde `main`, sin builds manuales) y las variables `VITE_*`. Login E2E en `https://scuda-podcast.netlify.app` → `/me` 200 en producción → `/onboarding`.
+- **DNS:** el *Target* del CNAME es un nombre de host (`scuda-podcast.netlify.app`), sin `https://`.
