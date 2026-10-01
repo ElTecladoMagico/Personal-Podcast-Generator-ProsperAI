@@ -23,3 +23,14 @@ def test_recovery_resubmits_only_unfinished_episodes():
     submitted = []
     assert set(jobs.recover_interrupted(submit=submitted.append)) == expected
     assert set(submitted) == expected
+
+
+def test_errors_outside_the_steps_are_logged_not_swallowed(monkeypatch, caplog):
+    import uuid
+
+    def boom(episode_id):
+        raise RuntimeError("database down")
+
+    monkeypatch.setattr(jobs, "generate_episode", boom)
+    jobs.run_in_pool(uuid.uuid4()).result()  # the thread logs it and finishes cleanly
+    assert "database down" in caplog.text

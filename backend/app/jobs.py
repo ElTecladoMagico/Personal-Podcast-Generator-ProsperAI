@@ -8,7 +8,7 @@ scheduler joins this module in branch 10.
 import logging
 import uuid
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 
 from sqlmodel import Session, select
 
@@ -23,8 +23,17 @@ executor = ThreadPoolExecutor(
 )
 
 
-def run_in_pool(episode_id: uuid.UUID) -> None:
-    executor.submit(generate_episode, episode_id)
+def run_in_pool(episode_id: uuid.UUID) -> Future:
+    return executor.submit(_generate_logged, episode_id)
+
+
+def _generate_logged(episode_id: uuid.UUID) -> None:
+    # The pool keeps exceptions inside the Future, where nobody reads them. Steps already
+    # record their failures; this catches the rest (bad snapshot, database down…).
+    try:
+        generate_episode(episode_id)
+    except Exception:
+        log.exception("episode %s crashed outside its steps", episode_id)
 
 
 def recover_interrupted(submit: Callable[[uuid.UUID], None] = run_in_pool) -> list[uuid.UUID]:
