@@ -73,6 +73,7 @@ class Candidate(BaseModel):  # step 1
     origin: Literal["google_news", "exa", "hn"]
     interest: str
     text: str | None = None  # Exa already includes the body
+    image_url: str | None = None  # Exa gives one; scraped pages get og:image in step 3
 
 
 class EditorPick(BaseModel):  # step 2

@@ -166,6 +166,7 @@ def parse_exa(data: dict, interest: str) -> list[Candidate]:
                 origin="exa",
                 interest=interest,
                 text=text if len(text) >= MIN_TEXT else None,
+                image_url=r.get("image"),
             )
         )
     return candidates

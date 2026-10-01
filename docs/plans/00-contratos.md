@@ -182,6 +182,7 @@ class Candidate(BaseModel):          # paso 1
     origin: Literal["google_news", "exa", "hn"]
     interest: str                    # tema que lo trajo
     text: str | None = None          # Exa ya trae el cuerpo
+    image_url: str | None = None     # Exa trae imagen; las páginas descargadas, og:image (paso 3)
 
 class EditorPick(BaseModel):         # paso 2
     story_id: str                    # "s1".."s7"

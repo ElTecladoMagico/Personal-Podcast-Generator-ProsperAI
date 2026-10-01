@@ -28,9 +28,9 @@ MIN_CANDIDATES = 5
 
 def default_steps() -> dict[str, Step]:
     """The six steps, in one place. Imported here to keep the step modules free of cycles."""
-    from app.pipeline import editor
+    from app.pipeline import editor, research
 
-    return {"fetching": fetch_step, "editing": editor.step}
+    return {"fetching": fetch_step, "editing": editor.step, "researching": research.step}
 
 
 def new_episode(session: Session, user: User, trigger: str) -> Episode:
@@ -141,7 +141,8 @@ def finish(session: Session, ep: Episode) -> None:
     ep.finished_at = datetime.now(UTC)
 
     # Memory for the editor (no repeats, follow-ups): one row per story chapter.
-    picks = {p["story_id"]: p for p in ep.work.get("selection", {}).get("picks", [])}
+    selection = ep.work.get("selection", {})
+    picks = {p["story_id"]: p for p in selection.get("picks", []) + selection.get("backups", [])}
     article_urls: dict[str, list[str]] = {}
     for a in ep.work.get("articles", []):
         article_urls.setdefault(a["story_id"], []).append(a["url"])
