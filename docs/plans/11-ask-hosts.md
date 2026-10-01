@@ -46,7 +46,7 @@
 ## Verificación final
 - 5 preguntas reales en un episodio (una fuera de las fuentes) → respuestas fieles, en el idioma correcto, con < 8 s de latencia media y reanudación correcta.
 - Dictado por voz probado en Chrome; en un navegador sin soporte, el botón del micrófono no aparece.
-- `improve` sobre la hoja y la burbuja.
+- Revisión de diseño (`ecc:frontend-design-direction` + Lighthouse) sobre la hoja y la burbuja.
 
 ## Criterios de aceptación
 - [ ] La respuesta suena con las voces del episodio y se reanuda donde estaba.

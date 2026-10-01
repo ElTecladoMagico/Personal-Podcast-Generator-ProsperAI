@@ -19,7 +19,7 @@ Esta carpeta es la **fuente de verdad para ejecutar el proyecto**. Si se pierde 
 | # | Rama | Plan | Depende de | Estado |
 |---|---|---|---|---|
 | 1 | `feat/backend-skeleton` | [01](01-backend-skeleton.md) | — | ✅ |
-| 2 | `feat/frontend-skeleton` | [02](02-frontend-skeleton.md) | 1 | ⏳ |
+| 2 | `feat/frontend-skeleton` | [02](02-frontend-skeleton.md) | 1 | ✅ |
 | 3 | `chore/deploy` | [03](03-deploy.md) | 1, 2 | ⏳ |
 | 4 | `spike/google-news` | [04](04-spike-google-news.md) | 1 | ⏳ |
 | 5 | `feat/news-sources` | [05](05-news-sources.md) | 4 | ⏳ |
@@ -45,6 +45,7 @@ Desplegamos al final de la rama 3 y **después de cada merge** a partir de ahí 
 | Rama 3 | Crear el sitio en **Netlify** enlazando el repo de GitHub (`scuda-podcast`) | `scuda-podcast.netlify.app` |
 | Rama 3 | DNS: `podcast.scuda.es` CNAME → `scuda-podcast.netlify.app` (el A de `api.podcast.scuda.es` ya está) | HTTPS en ambos |
 | Rama 3 | Clerk producción: añadir los registros DNS que pida Clerk para `scuda.es` (o seguir en modo desarrollo; ver plan 03) | Login sin la marca "Development" |
+| Cuando quieras | Clerk → Configure → *Application name*: cambiar "ProsperAI_challenge" por "Personal Podcast" (es lo que se ve en el modal de login) | Login con la marca del producto |
 | Rama 12 | Marcar tu usuario como admin: Clerk → Users → *public metadata* `{"role":"admin"}` | Acceso a `/admin` |
 
 ## Calidad (en cada rama, antes de mergear)
@@ -52,5 +53,6 @@ Desplegamos al final de la rama 3 y **después de cada merge** a partir de ahí 
 - Tests mínimos de la lógica no trivial (ver cada plan). `uv run pytest` y `npm run build` en verde.
 - `uv run ruff check . && uv run ruff format --check .` (backend) y `npm run lint` (frontend).
 - Revisión: `/code-review` sobre el diff de la rama; en ramas grandes (6, 9, 12), además la skill `thermo-nuclear-code-quality-review`.
-- UI: en ramas visuales (2, 7, 8, 9, 12), pasar la skill `improve` y revisar en el navegador a 1440 px y a 390 px.
+- UI: en ramas visuales (2, 7, 8, 9, 11, 12), revisar en el navegador a 1440 px y a 390 px (viewport emulado: la ventana no baja de 500 px) con el checklist de `ecc:frontend-design-direction` y un Lighthouse de accesibilidad (objetivo 100). La skill `improve` de shadcn no sirve para esto (es un auditor de código de solo lectura que genera planes para otro agente): se usa una vez en la rama 13 como auditoría final.
+- E2E con Clerk: el registro tiene CAPTCHA (Cloudflare Turnstile), así que el usuario de pruebas se crea con `clerk api /users` (email `…+clerk_test@example.com`, contraseña) y en el navegador solo se hace login; el código de verificación de los emails `+clerk_test` es `424242`. Borrar el usuario al terminar.
 - Ningún secreto en commits: `.env` está en `.gitignore`; solo se versionan los `.env.example`.

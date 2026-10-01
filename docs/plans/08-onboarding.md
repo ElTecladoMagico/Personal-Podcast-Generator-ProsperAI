@@ -71,7 +71,7 @@ Para cada voz × {en, es}: TTS `eleven_v3` con la frase "Hi, I'm {name}. This is
 - Usuario nuevo en local: importar con una respuesta real de ChatGPT y de Claude → chips correctos → completar → primer episodio en producción.
 - Recorrido manual sin importar → igual de fluido.
 - Cambiar la hora en ajustes → `next_run_at` correcto en la BD (comprobar en UTC).
-- Revisión visual 1440/390 + `improve`; navegación con teclado por todo el asistente.
+- Revisión visual 1440/390 + revisión de diseño (`ecc:frontend-design-direction` + Lighthouse); navegación con teclado por todo el asistente.
 
 ## Criterios de aceptación
 - [ ] La importación tolera las respuestas "sucias" típicas y da errores comprensibles.
