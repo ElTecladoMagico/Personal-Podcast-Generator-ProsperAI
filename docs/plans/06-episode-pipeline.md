@@ -164,3 +164,15 @@ Máximo 2 llamadas al verificador y 1 reescritura: coste y duración acotados.
 - **Créditos de ElevenLabs:** cada prueba de 2 min ≈ 1.800 créditos → presupuestar unas 10 pruebas (18k) + el `sample.mp3` final de 10 min (9k).
 - **Saltos de tono entre tramos:** `seed` fijo + cortes en el límite de capítulo (no a mitad de conversación) + continuidad si `eleven_v3` la admite.
 - **Etiquetas de audio en la alineación:** pueden desalinear las palabras → *fallback* a resaltar por turno.
+
+## Notas de implementación (2026-10-01)
+- **Modelos GPT-6** (`gpt-6-sol`, `gpt-6-luna`) en lugar de GPT-5.4: más nuevos y más baratos (ADR 0007, "Cambio").
+- **Pasos inyectables:** `generate_episode(id, steps=…)` y `default_steps()` lista los seis pasos en un sitio (sin registro por efectos de importación). Cada paso con lógica pura testeable y la llamada al modelo o a la API separada.
+- **El guionista devuelve `WriterScript`** (sin campos de tiempos) y `to_script` lo sanea: etiquetas de audio permitidas, sin URLs ni markdown, `source_ids` existentes, `speaker` válido.
+- **Longitud calibrada** con audio real: 850 caracteres/minuto, objetivo como máximo, recorte desde +15 % (ver resultados).
+- **Reservas en `finish()`:** la memoria de historias busca también en `backups` cuando una reserva sustituyó a una historia.
+- **`Candidate.image_url`** (Exa da imagen) y `articles.image_url` (og:image): la tarjeta del reproductor tiene imagen sin trabajo extra.
+- **Reanudación tras un crash:** si el proceso muere, el estado queda en la etapa; `generate_episode` reanuda ahí (antes empezaba de cero). `jobs.recover_interrupted()` lo hace al arrancar.
+- **Audio:** Starlette ya responde 206 a `Range`; no hizo falta código propio. `storage` sin limpieza todavía (rama 10).
+- **`previous_text`** no existe en `eleven_v3` (ADR 0008).
+- Resultados reales: [`06-resultados.md`](06-resultados.md). Informe TDD: [`docs/testing/06-episode-pipeline.tdd.md`](../testing/06-episode-pipeline.tdd.md).
