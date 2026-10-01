@@ -50,3 +50,14 @@ def get_article(url: str, session) -> ArticleText | None   # usa la tabla articl
 ## Riesgos
 - Crédito de Exa: vigilar `costDollars` (se suma al coste del episodio en la rama 6). Al agotarse, la fuente devuelve `[]`.
 - El RSS de Google News tiene ~100 ítems como máximo y a veces devuelve resultados antiguos → `when:2d` en la query y filtro por `pubDate`.
+
+## Notas de implementación (2026-10-01)
+- **Exa sustituye a The Guardian** (ADR 0006, "Cambio"): la key de Guardian exige email de empresa y la pública `test` ya da 401.
+- **Separar parseo y red:** cada fuente es `parse_*` (pura, testeada con respuestas reales grabadas en `tests/fixtures/`) + `fetch_*` (red, unas pocas líneas). Así se cumple "sin mocks de red" del contrato.
+- **Misma firma para todas las fuentes** `(interest, since)`: `fetch_google_news` recibe `lang` por nombre y `gather_candidates` usa `partial`. Permite inyectar fuentes falsas en los tests.
+- **Reparto:** *round robin* entre fuentes dentro de cada interés y entre intereses (más peso primero). Sin eso, el tope de 60 se llenaba solo con Google News.
+- **Caché de `articles`:** la clave es la URL del artículo pedida y normalizada (ya resuelta si venía de Google News), no la final tras redirecciones: así las búsquedas aciertan. Nueva columna `image_url` (og:image) con su migración.
+- **User-Agent honesto** (`PersonalPodcastBot/1.0`), sin disfrazarse de navegador: 16/20 artículos extraídos (el spike, con UA de navegador, dio el 70 %).
+- **Riesgo de términos de Google News** (uso personal, no comercial) añadido al ADR 0006.
+- **Verificación:** `uv run python -m scripts.candidates_cli --extract 20` → 44 candidatos en 1,6 s (Google News 27, Exa 16, HN 1) y 16/20 extracciones. Tests `live` en verde (`uv run pytest -m live`).
+- Informe TDD: [`docs/testing/05-news-sources.tdd.md`](../testing/05-news-sources.tdd.md).

@@ -28,6 +28,7 @@ Cada fuente es una función `fetch(interest, lang) -> list[Candidate]`. Sin clas
 ## Riesgos y mitigación
 - **Redirecciones de Google News**: spike de 1 h al inicio. Si no es fiable, sustituir por GNews (URLs directas) para el descubrimiento.
 - **Scraping fallido o con muro de pago**: el editor recibe candidatos de reserva y, si falla la extracción, se usa el extracto del RSS o se elige la siguiente historia.
+- **Términos del RSS de Google News**: el propio feed dice que es *"for personal, non-commercial use"* en un lector personal. Este proyecto (un reto técnico, sin ánimo de lucro, un podcast personal por usuario) encaja razonablemente; **un lanzamiento comercial exigiría sustituirlo** por una fuente con licencia (Exa ya lo es, o un agregador de pago). Anotado el 2026-10-01 al implementar la rama 5.
 - **Licencias**: usamos el texto solo para generar un resumen propio, citamos el medio y enlazamos el original en las notas del episodio. Nunca republicamos el artículo.
 - **Caché**: los artículos se cachean por URL para no repetir descargas entre usuarios con intereses parecidos.
 
