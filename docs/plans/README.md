@@ -21,7 +21,7 @@ Esta carpeta es la **fuente de verdad para ejecutar el proyecto**. Si se pierde 
 | 1 | `feat/backend-skeleton` | [01](01-backend-skeleton.md) | — | ✅ |
 | 2 | `feat/frontend-skeleton` | [02](02-frontend-skeleton.md) | 1 | ✅ |
 | 3 | `chore/deploy` | [03](03-deploy.md) | 1, 2 | ✅ |
-| 4 | `spike/google-news` | [04](04-spike-google-news.md) | 1 | ⏳ |
+| 4 | `spike/google-news` | [04](04-spike-google-news.md) · [resultados](04-resultados.md) | 1 | ✅ |
 | 5 | `feat/news-sources` | [05](05-news-sources.md) | 4 | ⏳ |
 | 6 | `feat/episode-pipeline` | [06](06-episode-pipeline.md) | 5 | ⏳ |
 | 7 | `feat/generation-progress` | [07](07-generation-progress.md) | 2, 6 | ⏳ |
