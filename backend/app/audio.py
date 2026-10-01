@@ -12,10 +12,23 @@ def concat_mp3(parts: list[Path], out: Path) -> None:
         listing.writelines(f"file '{Path(p).resolve()}'\n" for p in parts)
         listing.flush()
         subprocess.run(
-            ["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0",
-             "-i", listing.name, "-c", "copy", str(out)],
+            [
+                "ffmpeg",
+                "-y",
+                "-loglevel",
+                "error",
+                "-f",
+                "concat",
+                "-safe",
+                "0",
+                "-i",
+                listing.name,
+                "-c",
+                "copy",
+                str(out),
+            ],
             check=True,
-        )  # fmt: skip
+        )
 
 
 def duration(path: Path) -> float:
