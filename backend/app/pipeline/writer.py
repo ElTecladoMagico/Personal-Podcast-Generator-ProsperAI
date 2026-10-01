@@ -148,3 +148,25 @@ def step(ep: Episode, prefs: Preferences, session: Session) -> None:
     script, usage = write_script(payload, {a.id for a in articles}, len(prefs.hosts))
     save_work(ep, "draft_script", script.model_dump())
     add_cost(ep, usage)
+
+
+REVISE = """
+
+## Revision
+You are now correcting a script you wrote. The fact-checker flagged some turns. Rewrite ONLY
+those turns so they say what the articles support (or soften/remove the claim); keep every
+other turn word for word, and keep the same chapters and turns in the same order."""
+
+
+def revise_script(
+    script: Script, issues: list, articles: list[Article], article_ids: set[str], hosts: int
+) -> tuple[Script, dict]:
+    payload = {
+        "script": script.model_dump(include={"title", "summary", "chapters"}),
+        "issues": [i.model_dump() for i in issues],
+        "articles": [{"id": a.id, "outlet": a.source, "text": a.text} for a in articles],
+    }
+    draft, usage = llm.parse(
+        llm.WRITER_MODEL, PROMPT + REVISE, json.dumps(payload, ensure_ascii=False), WriterScript
+    )
+    return to_script(draft, article_ids, hosts), usage

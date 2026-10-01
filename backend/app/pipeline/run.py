@@ -28,13 +28,14 @@ MIN_CANDIDATES = 5
 
 def default_steps() -> dict[str, Step]:
     """The six steps, in one place. Imported here to keep the step modules free of cycles."""
-    from app.pipeline import editor, research, writer
+    from app.pipeline import checker, editor, research, writer
 
     return {
         "fetching": fetch_step,
         "editing": editor.step,
         "researching": research.step,
         "writing": writer.step,
+        "verifying": checker.step,
     }
 
 
