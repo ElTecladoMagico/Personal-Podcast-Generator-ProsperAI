@@ -60,3 +60,13 @@
 ## Riesgos y notas
 - **Claim de email:** el token de Clerk por defecto no trae el email; se añade en *Customize session token*: `{"metadata": "{{user.public_metadata}}", "email": "{{user.primary_email_address}}", "name": "{{user.first_name}}"}`. El upsert actualiza `email` y `display_name` en cada login si cambian.
 - **Postgres 18:** la imagen `postgres:18` usa `/var/lib/postgresql` como `PGDATA` padre; montar el volumen en `/var/lib/postgresql` (no en `/data`). Verificar en la documentación de la imagen al implementar.
+
+## Notas de implementación (2026-10-01)
+Diferencias con el plan, todas pequeñas:
+- **Orden TDD:** el test de `/me` y su fixture de BD (commit 8) se escribieron *antes* que el endpoint y van en el mismo commit que `GET /me`. Los tests (RED) cazaron un bug real: SQLAlchemy no ordena los `INSERT` por FK sin `relationship()`, y el evento `user_signed_up` se insertaba antes que el usuario. Se corrigió en un commit `fix` propio con `session.flush()`.
+- **BD de tests:** la crea Postgres al iniciar el contenedor mediante un `configs` en línea de `docker-compose.yml`, sin script aparte.
+- **Dependencias como `Annotated`:** `DbSession`, `Claims` y `CurrentUser` (estilo recomendado por FastAPI y evita el aviso B008 de ruff). Los routers las reutilizan.
+- **`tests/conftest.py` fija `DATABASE_URL`, `CLERK_ISSUER`, `CLERK_AUTHORIZED_PARTIES` y `CORS_ORIGINS`** para que los tests no dependan del `.env` de cada uno.
+- `httpx2` como dependencia de desarrollo (Starlette lo pide para el `TestClient`); ruff excluye `migrations/versions` (código generado).
+- **Clerk configurado con su CLI** (`clerk auth login`, `clerk link`, `clerk config patch` para los *custom claims*). Prueba E2E con un token real emitido para un usuario temporal (luego borrado): firma vía JWKS, `email`, `name` y `metadata.role` correctos. Los tokens emitidos desde la Backend API no llevan `azp`; con el navegador sí, y se valida en la rama 2.
+- Informe TDD: [`docs/testing/01-backend-skeleton.tdd.md`](../testing/01-backend-skeleton.tdd.md).

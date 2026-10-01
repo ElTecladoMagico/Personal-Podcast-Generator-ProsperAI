@@ -3,3 +3,14 @@
 # Local Claude Code plugins/skills
 .claude/skills/
 .claude/settings.local.json
+
+# Python
+__pycache__/
+.venv/
+.coverage
+
+# Local data and builds
+.env.local
+data/
+node_modules/
+dist/

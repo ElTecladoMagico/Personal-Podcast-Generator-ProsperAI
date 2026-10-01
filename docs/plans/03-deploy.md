@@ -59,7 +59,7 @@
 | **Instancia de desarrollo (recomendada para empezar)** | Cero configuración; funciona en cualquier origen | Muestra la marca "Development mode"; límites de usuarios de desarrollo |
 | Instancia de producción | Aspecto final profesional | Exige registros DNS de Clerk en `scuda.es` y credenciales OAuth propias de Google (Google Cloud Console) |
 
-Decisión: desarrollo ahora; valorar pasar a producción en la rama 13 si hay tiempo (anotado como tarea pendiente).
+Decisión: desarrollo ahora; valorar pasar a producción en la rama 13 si hay tiempo (anotado como tarea pendiente). Si se hace, el CLI tiene `clerk deploy`, que guía la creación de la instancia de producción; después, repetir el `clerk config patch` de los *custom claims* con `--instance prod`.
 
 ## Verificación final
 - Login en `https://podcast.scuda.es` → `Home` con el email → la fila existe en el Postgres de producción (`docker exec podcast-postgres psql …`).
