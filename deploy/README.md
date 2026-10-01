@@ -1,10 +1,10 @@
 # Runbook de despliegue
 
 - **Frontend:** Netlify (`scuda-podcast`), construido desde `main` con [`netlify.toml`](../netlify.toml). Dominio `https://podcast.scuda.es`.
-- **Backend:** VPS Hetzner compartido con *instanta* (`ssh instanta`). Código en `/opt/podcast/repo`, secretos en `/opt/podcast/.env` (600), backups en `/opt/podcast/backups`. Dominio `https://api.podcast.scuda.es`, servido por el Caddy de instanta.
+- **Backend:** VPS Hetzner compartido con *instanta* (`ssh instanta`). Código en `/opt/podcast/repo`, secretos en `/opt/podcast/.env` (600), backups en `/opt/podcast/backups`. Dominio `https://api.podcast.scuda.es`, servido por el proxy neutral **edge** (ver abajo).
 
 ```
-Internet ──443──▶ instanta-caddy-1 ──red instanta_default──▶ podcast-api:8000 ──▶ podcast-postgres:5432
+Internet ──443──▶ edge-caddy ──red edge──▶ podcast-api:8000 ──▶ podcast-postgres:5432
 ```
 Ni `podcast-api` ni `podcast-postgres` publican puertos.
 
@@ -18,20 +18,27 @@ Las migraciones de Alembic se aplican solas al arrancar el contenedor. Netlify d
 1. `mkdir -p /opt/podcast/backups && git clone https://github.com/ElTecladoMagico/Personal-Podcast-Generator-ProsperAI /opt/podcast/repo`
 2. `/opt/podcast/.env` a partir de [`.env.production.example`](.env.production.example), con `chmod 600`. Se genera en local con una contraseña aleatoria de Postgres y se sube con `scp`; la copia local se borra.
 3. `cd /opt/podcast/repo && docker compose -f deploy/docker-compose.yml up -d --build`
-4. Caddy de instanta (ver abajo).
+4. Proxy edge (ver abajo).
 5. Cron de backups: `/etc/cron.d/podcast-backup` → `30 3 * * * root /opt/podcast/repo/deploy/backup.sh`.
 
-## Lo que tocamos de instanta (y cómo revertirlo)
-Solo su Caddyfile: se añadió al final el bloque de [`Caddyfile.snippet`](Caddyfile.snippet).
-- **Añadir o cambiar:** `cp /opt/instanta/Caddyfile /opt/instanta/Caddyfile.bak-$(date +%F-%H%M)`, editar, validar el **fichero del host** con un Caddy temporal y reiniciar:
+## Proxy edge (HTTPS de todo el VPS)
+Caddy no pertenece a ningún proyecto: vive en `/opt/edge` (fuente versionada en [`deploy/edge/`](edge/)). Cada proyecto une sus contenedores públicos a la red externa `edge` y **ninguno depende del compose de otro**: si instanta se redespliega o se apaga, el podcast sigue funcionando, y viceversa.
+
+```
+Internet ──443──▶ edge-caddy ──red edge──▶ podcast-api:8000
+                              └──────────▶ instanta-app-1:3000, instanta-demo-store-1:4000
+```
+
+- **Creado una vez a mano** (ya hecho el 2026-10-01): `docker network create edge` y el volumen `edge_caddy_data` (con los certificados copiados del Caddy anterior). El compose de edge los declara `external`, así sobreviven a recrear el proxy.
+- **Cambiar un sitio:** editar `deploy/edge/Caddyfile` → `scp deploy/edge/Caddyfile instanta:/opt/edge/` → validar → `docker restart edge-caddy` (~2 s de corte para todos los sitios):
   ```bash
-  docker run --rm -e DOMAIN=instanta.scuda.es -v /opt/instanta/Caddyfile:/etc/caddy/Caddyfile:ro \
-    caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
-  docker restart instanta-caddy-1
+  ssh instanta 'docker run --rm -v /opt/edge/Caddyfile:/etc/caddy/Caddyfile:ro caddy:2-alpine \
+    caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile && docker restart edge-caddy'
   ```
-- **Por qué `restart` y no `caddy reload`:** el Caddyfile está montado como *bind mount de un fichero*. Si el fichero del host se reemplaza (no se edita en sitio), el contenedor sigue viendo el inode antiguo y `reload` carga la configuración vieja. Pasó el 2026-10-01: el despliegue de instanta había sustituido el fichero. `docker restart` vuelve a montarlo por ruta (corte de ~2 s; los certificados viven en el volumen `instanta_caddy_data`). **Esto también afecta a instanta.** Para comprobarlo: `stat -c %i /opt/instanta/Caddyfile` debe coincidir con `docker exec instanta-caddy-1 stat -c %i /etc/caddy/Caddyfile`.
-- **Revertir:** restaurar el `.bak-*` y `docker restart instanta-caddy-1`.
-- **Si instanta hace `docker compose down`**, su red `instanta_default` se recrea y `podcast-api` pierde la conexión: `cd /opt/podcast/repo && docker compose -f deploy/docker-compose.yml up -d`.
+  Se reinicia en lugar de `caddy reload` porque el Caddyfile es un *bind mount de un fichero*: si se sustituye el fichero, el contenedor sigue viendo el antiguo hasta reiniciar.
+- **Los despliegues del podcast no tocan edge.** Los de instanta (`infra/deploy.sh` en su repo) tampoco: su compose ya no tiene Caddy y une `app` y `demo-store` a `edge`.
+- **Historia:** al principio el podcast se colgaba del Caddy de instanta (un bloque añadido a su Caddyfile). Un despliegue de instanta sobrescribió ese fichero y tumbó `api.podcast.scuda.es`; por eso se sacó Caddy a este proyecto neutral (decisión del autor: el reto no debe depender de instanta).
+- **Volver atrás:** `cd /opt/edge && docker compose down`, restaurar `caddy` en el compose de instanta y redesplegarlo.
 
 ## Operación
 | Tarea | Comando (en el VPS) |

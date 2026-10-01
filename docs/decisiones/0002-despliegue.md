@@ -37,3 +37,15 @@ Disponemos de Netlify, Google Cloud Run (activo) y una VPS. La generación de un
 
 ## Revisar si
 Hace falta más de una instancia del backend, o la VPS se queda corta de CPU/RAM.
+
+## Cambio: proxy neutral `edge` (2026-10-01)
+Reutilizar el Caddy de instanta resultó frágil: su despliegue sobrescribe su Caddyfile y borró el bloque del podcast (la API estuvo caída unas horas). El autor no quiere que el reto dependa de instanta.
+
+| Opción | Pros | Contras |
+|---|---|---|
+| **Proxy neutral `/opt/edge` (elegida)** | Ningún proyecto depende del otro; cada uno une sus contenedores a la red `edge`. Certificados conservados. | Un tercer compose en el VPS que mantener. |
+| Copiar el bloque del podcast en el repo de instanta | Lo más rápido | Instanta "conoce" el podcast; el podcast sigue dependiendo del Caddy y del repo de instanta |
+| `import` de una carpeta en el Caddyfile de instanta | Instanta no conoce el podcast | El podcast sigue dependiendo del Caddy de instanta |
+| Sacar el backend del VPS (Cloud Run + Postgres gestionado) | Independencia total | Coste, migración de datos y rehacer el despliegue |
+
+Detalle operativo en [`deploy/README.md`](../../deploy/README.md) ("Proxy edge").
