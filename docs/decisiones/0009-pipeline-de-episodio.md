@@ -15,7 +15,7 @@ Una función `generate_episode(episode_id)` que ejecuta en orden y guarda `episo
 | 3 | Documentación | Scraping del texto completo solo de las elegidas | `researching` |
 | 4 | Guionista (LLM) | JSON `{title, chapters[{story_id, turns[{speaker, text, source_ids}]}]}` según formato, tono, duración e idioma | `writing` |
 | 5 | Verificador (LLM) | Comprueba cada turno contra el texto de sus `source_ids`. Devuelve los turnos con afirmaciones no respaldadas, exageradas o mal atribuidas, y el guionista los reescribe (una sola ronda; si alguno sigue sin respaldo, se elimina). | `verifying` |
-| 6 | Locutores | ElevenLabs por capítulo → MP3 + tiempos ([0008](0008-tts.md)) | `recording` → `ready` |
+| 6 | Locutores | ElevenLabs por tramos → MP3 unido con ffmpeg ([0016](0016-montaje-de-audio-ffmpeg.md)) + tiempos ([0008](0008-tts.md)) | `recording` → `ready` |
 
 Si falla, `failed` con la etapa y el error. El reintento rehace desde la etapa fallida porque los resultados intermedios se guardan en el episodio.
 

@@ -18,11 +18,12 @@ Principios que guían todas las decisiones:
 | [0007](0007-llm.md) | LLM: OpenAI | Aceptada |
 | [0008](0008-tts.md) | Voz: ElevenLabs Text to Dialogue | Aceptada |
 | [0009](0009-pipeline-de-episodio.md) | Pipeline del episodio: "redacción" en 6 pasos con verificación de hechos | Aceptada |
-| [0010](0010-programacion-y-ejecucion.md) | Programación y ejecución: APScheduler + tareas en proceso | Aceptada |
+| [0010](0010-programacion-y-ejecucion.md) | Programación y ejecución: APScheduler + pool de hilos, progreso por polling | Aceptada |
 | [0011](0011-entrega-rss-privado.md) | Entrega: feed RSS privado por usuario | Aceptada |
 | [0012](0012-onboarding-importar-desde-ia.md) | Onboarding: importar intereses desde tu IA | Aceptada |
 | [0013](0013-dashboard-de-metricas.md) | Dashboard interno de métricas | Aceptada |
 | [0014](0014-ux-reproductor-inmersivo.md) | UX: reproductor inmersivo | Aceptada |
 | [0015](0015-idioma-elegible.md) | Idioma del podcast elegible por usuario | Aceptada |
+| [0016](0016-montaje-de-audio-ffmpeg.md) | Montaje de audio con ffmpeg | Aceptada |
 
 Diagrama: [`../arquitectura/architecture.html`](../arquitectura/architecture.html) (fuente: `architecture.json`, generado con archify).

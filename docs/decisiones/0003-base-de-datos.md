@@ -14,11 +14,14 @@ SQLite **sí aguanta muchos usuarios**. Con modo WAL admite lecturas concurrente
 ## Decisión
 **PostgreSQL 16** en un contenedor del mismo `docker compose`. Acceso con SQLAlchemy/SQLModel y migraciones con Alembic.
 
-Modelo (4 tablas):
+Modelo (5 tablas; `articles` se añadió en la planificación como la caché de extracción del ADR 0006):
 - `users` (id de Clerk, preferencias en JSONB)
 - `episodes` (estado, guion JSON con tiempos, ruta del audio, costes)
 - `stories` (historias ya contadas, para memoria y seguimientos)
 - `events` (reproducción, saltos, 👍/👎, fin de escucha)
+- `articles` (caché de textos extraídos por URL, compartida entre usuarios, 48 h)
+
+Esquema detallado: [`docs/plans/00-contratos.md` §4](../plans/00-contratos.md).
 
 ## Alternativas
 
