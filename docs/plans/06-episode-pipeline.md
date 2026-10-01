@@ -72,7 +72,7 @@ Fórmula en el código: `stories = {2:2, 5:3, 10:5, 20:7}[minutes]` y `target_ch
 **Salida:** `EditorSelection` (añadir `backups: list[EditorPick]` al contrato). Validación: ids existentes y ningún candidato repetido entre historias.
 
 ## Paso 3 · Documentación (`researching`)
-Para cada historia (más las reservas si hace falta): hasta **2 artículos de medios distintos** con `get_article()` (rama 5). El candidato de Guardian ya trae `text`.
+Para cada historia (más las reservas si hace falta): hasta **2 artículos de medios distintos** con `get_article()` (rama 5). El candidato de Exa ya trae `text` (si es suficientemente largo).
 - Una historia necesita ≥ 1 artículo con más de 800 caracteres; si no lo consigue, se sustituye por una reserva.
 - Si al final hay menos historias de las pedidas, se continúa con las que haya (mínimo 2) y se registra en `work`.
 - Salida: `work.articles` (`Article` con ids `a1..aN`, `text[:6000]`, `image_url`).
@@ -87,7 +87,7 @@ Para cada historia (más las reservas si hace falta): hasta **2 artículos de me
    - `solo`: un presentador; turnos más largos.
    - `duo`: conversación natural, con interrupciones breves ("¡espera!", "¿en serio?"), alternancia y un presentador que explica mientras el otro pregunta lo que preguntaría el oyente.
    - `debate`: cada historia con un punto a favor y otro en contra, y un cierre equilibrado.
-4. **Hechos:** solo lo que dicen los artículos aportados. Cada turno con afirmaciones lleva sus `source_ids`. Citar el medio de forma natural ("según The Guardian…"). Nada de cifras ni citas inventadas. Si los medios discrepan, decirlo.
+4. **Hechos:** solo lo que dicen los artículos aportados. Cada turno con afirmaciones lleva sus `source_ids`. Citar el medio de forma natural ("según El País…"). Nada de cifras ni citas inventadas. Si los medios discrepan, decirlo.
 5. **Seguimientos:** "Como os contamos el martes, … hoy hay novedades: …".
 6. **Para TTS:**
    - turnos ≤ 600 caracteres;

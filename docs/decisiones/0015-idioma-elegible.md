@@ -4,7 +4,7 @@
 
 ## Decisión
 `preferences.language` (ISO 639-1). Afecta a:
-1. la búsqueda de noticias (`hl`/`gl` en Google News; la Guardian y HN en inglés se traducen al resumir);
+1. la búsqueda de noticias (`hl`/`gl` en Google News; Exa busca en cualquier idioma; HN, en inglés, se traduce al resumir);
 2. el idioma de salida del guionista;
 3. las voces sugeridas.
 

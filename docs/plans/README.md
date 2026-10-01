@@ -40,7 +40,7 @@ Desplegamos al final de la rama 3 y **después de cada merge** a partir de ahí 
 |---|---|---|
 | ✅ Antes de la rama 1 | Crear una aplicación en **Clerk** (Google + email). Hecho: app `app_3K65U9tWgI5ZMYza2Mn3R3JNn9e`; Claude obtiene las claves con el CLI (`clerk env pull`). | `VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_ISSUER` |
 | ✅ Antes de la rama 1 | *Custom claims* del token de sesión: `{"metadata": "{{user.public_metadata}}", "email": "{{user.primary_email_address}}", "name": "{{user.first_name}}"}`. Hecho por Claude con `clerk config patch` (ver README raíz). | El JWT lleva el rol de admin, el email y el nombre |
-| Antes de la rama 5 | Pedir una key gratuita en https://open-platform.theguardian.com/access/ | `GUARDIAN_API_KEY` (mientras tanto vale `test`) |
+| ✅ Antes de la rama 5 | ~~Key de The Guardian~~ (exige email de empresa) → cuenta en https://dashboard.exa.ai (ADR 0006, "Cambio") | `EXA_API_KEY` en `.env` y en `/opt/podcast/.env` |
 | Antes de la rama 6 | Mirar los créditos restantes de ElevenLabs en su panel | Presupuesto de pruebas |
 | ✅ Rama 3 | Crear el sitio en **Netlify** enlazando el repo de GitHub (`scuda-podcast`) | `scuda-podcast.netlify.app` |
 | ✅ Rama 3 | DNS: `podcast.scuda.es` CNAME → `scuda-podcast.netlify.app` (sin `https://`; el A de `api.podcast.scuda.es` ya está) | HTTPS en ambos |
