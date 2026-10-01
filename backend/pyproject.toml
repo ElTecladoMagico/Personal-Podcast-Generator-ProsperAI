@@ -5,9 +5,11 @@ description = "Personal Podcast Generator API"
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.20.0",
+    "elevenlabs>=2.70.0",
     "fastapi[standard]>=0.142.2",
     "feedparser>=6.0.14",
     "httpx>=0.28.1",
+    "openai>=3.22.1",
     "psycopg[binary]>=3.3.6",
     "pydantic-settings>=2.15.0",
     "pyjwt[crypto]>=2.15.1",
