@@ -9,20 +9,28 @@ import logging
 import time
 import uuid
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
-from sqlmodel import Session
+from sqlmodel import Session, func, select
 
 from app.config import settings
 from app.db import engine
 from app.models import Episode, Event, Story, User
 from app.schemas import Preferences, Script
+from app.sources import gather_candidates
 
 log = logging.getLogger(__name__)
 
 STAGES = ["fetching", "editing", "researching", "writing", "verifying", "recording"]
 Step = Callable[[Episode, Preferences, Session], None]
-STEPS: dict[str, Step] = {}  # filled by the step modules as they land
+MIN_CANDIDATES = 5
+
+
+def default_steps() -> dict[str, Step]:
+    """The six steps, in one place. Imported here to keep the step modules free of cycles."""
+    from app.pipeline import editor
+
+    return {"fetching": fetch_step, "editing": editor.step}
 
 
 def new_episode(session: Session, user: User, trigger: str) -> Episode:
@@ -65,8 +73,29 @@ def add_cost(ep: Episode, usage: dict) -> None:
     }
 
 
+def news_window_start(last_ready: datetime | None, prefs: Preferences, now: datetime) -> datetime:
+    """News since the last episode, but never less than 1 day nor more than the default window."""
+    default = timedelta(days=8 if prefs.schedule.frequency == "weekly" else 2)
+    since = last_ready or now - default
+    return min(max(since, now - default), now - timedelta(days=1))
+
+
+def fetch_step(ep: Episode, prefs: Preferences, session: Session) -> None:
+    """Step 1 · Reporter: candidates from every source (app.sources)."""
+    last_ready = session.exec(
+        select(func.max(Episode.finished_at)).where(
+            Episode.user_id == ep.user_id, Episode.status == "ready"
+        )
+    ).one()
+    since = news_window_start(last_ready, prefs, datetime.now(UTC))
+    candidates = gather_candidates(prefs, since)
+    if len(candidates) < MIN_CANDIDATES:
+        raise RuntimeError("No recent news found about your interests")
+    save_work(ep, "candidates", [c.model_dump(mode="json") for c in candidates])
+
+
 def generate_episode(episode_id: uuid.UUID, steps: dict[str, Step] | None = None) -> None:
-    steps = steps or STEPS
+    steps = steps or default_steps()
     with Session(engine) as session:
         ep = session.get(Episode, episode_id)
         prefs = Preferences.model_validate(ep.prefs_snapshot)

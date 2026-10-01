@@ -129,3 +129,18 @@ def test_effective_minutes_are_capped_by_settings(monkeypatch):
     assert run.effective_minutes(prefs) == 2
     monkeypatch.setattr(run.settings, "episode_max_minutes", 10)
     assert run.effective_minutes(prefs) == 10
+
+
+def test_news_window_starts_at_last_episode_but_stays_between_one_day_and_the_default():
+    from datetime import UTC, datetime, timedelta
+
+    from app.schemas import Preferences
+
+    now = datetime(2026, 10, 1, 7, 0, tzinfo=UTC)
+    daily = Preferences.model_validate(PREFS)
+    weekly = Preferences.model_validate(PREFS | {"schedule": {"frequency": "weekly", "weekday": 0}})
+    assert run.news_window_start(None, daily, now) == now - timedelta(days=2)
+    assert run.news_window_start(None, weekly, now) == now - timedelta(days=8)
+    assert run.news_window_start(now - timedelta(hours=30), daily, now) == now - timedelta(hours=30)
+    assert run.news_window_start(now - timedelta(hours=3), daily, now) == now - timedelta(days=1)
+    assert run.news_window_start(now - timedelta(days=20), daily, now) == now - timedelta(days=2)
