@@ -16,5 +16,15 @@
   },
   "ignorePatterns": [
     "src/components/ui/**"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "src/lib/**"
+      ],
+      "rules": {
+        "react/only-export-components": "off"
+      }
+    }
   ]
 }
