@@ -79,6 +79,7 @@ class Article(SQLModel, table=True):
     url: str = Field(primary_key=True)  # normalized final URL
     title: str | None = None
     text: str | None = None
+    image_url: str | None = None  # og:image, for the player card
     ok: bool
     fetched_at: datetime = Field(default_factory=now, sa_type=TZ)
 

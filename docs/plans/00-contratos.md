@@ -136,7 +136,7 @@ Puertos locales: API `8000`, Vite `5173`, Postgres `5433` (para no chocar con ot
 
 **`stories`** (memoria): `id` uuid, `user_id`, `episode_id`, `title`, `summary` (≤400 caracteres), `topic`, `urls` jsonb (list), `covered_at`. Índice `(user_id, covered_at)`.
 
-**`articles`** (caché de extracción, compartida entre usuarios): `url` text PK (URL final normalizada), `title`, `text` (texto completo o null), `ok` bool, `fetched_at`. Se reutiliza si tiene menos de 48 h.
+**`articles`** (caché de extracción, compartida entre usuarios): `url` text PK (URL del artículo normalizada; si era de Google News, ya resuelta), `title`, `text` (texto completo o null), `image_url` (og:image, para la tarjeta del reproductor; añadida en la rama 5), `ok` bool, `fetched_at`. Se reutiliza si tiene menos de 48 h.
 
 **`events`**: `id` bigserial, `user_id` uuid FK, `type` text, `episode_id` uuid null, `props` jsonb, `ts` timestamptz default now(). Índices `(type, ts)` y `(user_id, ts)`.
 
