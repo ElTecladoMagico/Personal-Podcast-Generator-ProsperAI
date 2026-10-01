@@ -1,0 +1,5 @@
+.env
+
+# Local Claude Code plugins/skills
+.claude/skills/
+.claude/settings.local.json
