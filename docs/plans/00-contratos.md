@@ -24,7 +24,7 @@ Lo que todas las ramas deben respetar. Cambiar algo aquí = cambiarlo en el mism
 │   │   ├── llm.py            # wrapper fino de OpenAI: parse() + coste
 │   │   ├── storage.py        # rutas de audio, save/delete, limpieza 30 días
 │   │   ├── audio.py          # ffmpeg: concat + duración (ffprobe)
-│   │   ├── sources.py        # fetch_google_news, fetch_guardian, fetch_hn
+│   │   ├── sources.py        # fetch_google_news, fetch_exa, fetch_hn, resolve_google_news
 │   │   ├── extract.py        # descarga + trafilatura + caché en tabla articles
 │   │   ├── pipeline/
 │   │   │   ├── run.py        # generate_episode(): orquesta los 6 pasos y estados
@@ -80,7 +80,7 @@ Lo que todas las ramas deben respetar. Cambiar algo aquí = cambiarlo en el mism
 | `DATABASE_URL` | `postgresql+psycopg://podcast:podcast@localhost:5433/podcast` | SQLAlchemy |
 | `OPENAI_API_KEY` | `sk-…` | LLM |
 | `ELEVENLABS_API_KEY` | `…` | TTS |
-| `GUARDIAN_API_KEY` | `test` | Fuente de noticias |
+| `EXA_API_KEY` | `…` | Fuente de noticias (Exa). Vacía = la fuente se salta |
 | `CLERK_ISSUER` | `https://xxx.clerk.accounts.dev` | `iss` del JWT; JWKS en `{issuer}/.well-known/jwks.json` |
 | `CLERK_AUTHORIZED_PARTIES` | `http://localhost:5173,https://podcast.scuda.es` | Validación del claim `azp` |
 | `CORS_ORIGINS` | igual que el anterior | CORS |
@@ -179,9 +179,9 @@ class Candidate(BaseModel):          # paso 1
     id: str                          # "c1".."cN" (único en el episodio)
     title: str; source: str; url: str
     published_at: datetime | None; snippet: str | None
-    origin: Literal["google_news", "guardian", "hn"]
+    origin: Literal["google_news", "exa", "hn"]
     interest: str                    # tema que lo trajo
-    text: str | None = None          # Guardian ya trae el cuerpo
+    text: str | None = None          # Exa ya trae el cuerpo
 
 class EditorPick(BaseModel):         # paso 2
     story_id: str                    # "s1".."s7"

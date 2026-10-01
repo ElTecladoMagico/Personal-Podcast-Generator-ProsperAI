@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     database_url: str
     openai_api_key: str = ""
     elevenlabs_api_key: str = ""
-    guardian_api_key: str = "test"
+    exa_api_key: str = ""
     clerk_issuer: str
     clerk_authorized_parties: CommaList = []
     cors_origins: CommaList = []
