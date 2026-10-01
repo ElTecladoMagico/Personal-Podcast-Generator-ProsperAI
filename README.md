@@ -18,7 +18,9 @@ uv run fastapi dev app/main.py       # API en http://localhost:8000 (docs en /do
 Comprobaciones del backend:
 
 ```bash
-uv run pytest                        # usa la base podcast_test
+uv run pytest                        # usa la base podcast_test (sin red)
+uv run pytest -m live                # tests contra APIs reales (Google News, Exa)
+uv run python -m scripts.candidates_cli --extract 10   # candidatos reales para scripts/sample_prefs.json
 uv run ruff check . && uv run ruff format --check .
 ```
 

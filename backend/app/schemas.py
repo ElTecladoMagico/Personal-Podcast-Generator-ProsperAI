@@ -70,9 +70,9 @@ class Candidate(BaseModel):  # step 1
     url: str
     published_at: datetime | None
     snippet: str | None
-    origin: Literal["google_news", "guardian", "hn"]
+    origin: Literal["google_news", "exa", "hn"]
     interest: str
-    text: str | None = None  # Guardian already includes the body
+    text: str | None = None  # Exa already includes the body
 
 
 class EditorPick(BaseModel):  # step 2

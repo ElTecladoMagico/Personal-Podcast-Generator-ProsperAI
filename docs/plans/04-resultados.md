@@ -23,7 +23,7 @@ Los artículos sin texto suficiente son muros de pago, páginas con mucho JavaSc
 ## Decisión
 **Se mantiene Google News RSS** como fuente de descubrimiento, resolviendo los enlaces con la vía c (unas 20 líneas propias, sin dependencia: `googlenewsdecoder` no funciona desde la UE). Y, aunque es rápido, **solo se resuelven los enlaces de las historias elegidas por el editor** (paso 3): el editor trabaja con titular, medio y fecha, que el RSS ya trae.
 
-**Riesgo aceptado:** `batchexecute` es un endpoint interno de Google y puede cambiar. Mitigación: Guardian y HN siguen dando candidatos con URL directa, el editor tiene historias de reserva y un test `@pytest.mark.live` detecta la rotura. Si se rompe, el plan B es GNews API (URLs directas).
+**Riesgo aceptado:** `batchexecute` es un endpoint interno de Google y puede cambiar. Mitigación: Exa y HN siguen dando candidatos con URL directa, el editor tiene historias de reserva y un test `@pytest.mark.live` detecta la rotura. Si se rompe, el plan B es GNews API (URLs directas).
 
 ## Salida completa (portátil)
 ```
