@@ -1,0 +1,39 @@
+# Production on the shared Hetzner VPS (runbook: deploy/README.md).
+# No published ports: instanta's Caddy reaches podcast-api over the `edge` network.
+name: podcast
+
+services:
+  podcast-api:
+    build: ../backend
+    container_name: podcast-api
+    env_file: /opt/podcast/.env
+    volumes:
+      - podcast_audio:/data/audio
+    networks: [default, edge]
+    mem_limit: 768m
+    restart: unless-stopped
+    depends_on:
+      podcast-postgres:
+        condition: service_healthy
+
+  podcast-postgres:
+    image: postgres:18-alpine
+    container_name: podcast-postgres
+    env_file: /opt/podcast/.env  # POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB
+    volumes:
+      - podcast_pg:/var/lib/postgresql
+    mem_limit: 256m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+
+networks:
+  edge:
+    external: true
+    name: instanta_default
+
+volumes:
+  podcast_audio:
+  podcast_pg:
