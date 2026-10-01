@@ -12,6 +12,4 @@ def audio_relpath(user_id: uuid.UUID, episode_id: uuid.UUID) -> str:
 
 
 def audio_file(relpath: str) -> Path:
-    path = Path(settings.audio_dir) / relpath
-    path.parent.mkdir(parents=True, exist_ok=True)
-    return path
+    return Path(settings.audio_dir) / relpath

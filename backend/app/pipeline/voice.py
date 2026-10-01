@@ -166,6 +166,7 @@ def step(ep: Episode, prefs: Preferences, session: Session) -> None:
     script = Script.model_validate(ep.work["final_script"])
     relpath = audio_relpath(ep.user_id, ep.id)
     out = audio_file(relpath)
+    out.parent.mkdir(parents=True, exist_ok=True)
 
     def progress(done: int, total: int) -> None:  # the UI shows "recording 3/6"
         save_work(ep, "recording", {"done": done, "total": total})
