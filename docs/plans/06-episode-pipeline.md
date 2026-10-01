@@ -176,3 +176,9 @@ Máximo 2 llamadas al verificador y 1 reescritura: coste y duración acotados.
 - **Audio:** Starlette ya responde 206 a `Range`; no hizo falta código propio. `storage` sin limpieza todavía (rama 10).
 - **`previous_text`** no existe en `eleven_v3` (ADR 0008).
 - Resultados reales: [`06-resultados.md`](06-resultados.md). Informe TDD: [`docs/testing/06-episode-pipeline.tdd.md`](../testing/06-episode-pipeline.tdd.md).
+
+### Límites conocidos (revisión propia del diff, 2026-10-01)
+- **Mismo medio con dos nombres:** Google News da "El País" y Exa da "elpais.com"; la regla de "2 medios distintos por historia" podría coger el mismo medio dos veces. Impacto bajo (solo reduce la variedad).
+- **Crash entre `recording` y `finish()`:** el episodio queda en `recording` y al reanudarse vuelve a grabar (≈ 1 crédito por carácter). Ventana de milisegundos; aceptado.
+- **Coste de Exa** (~0,007 USD por búsqueda) y **créditos de un tramo de TTS que falla** no se suman a `episodes.cost`. Se puede estimar en el dashboard (rama 12) como nº de intereses × 0,007.
+- **Grabación secuencial:** un tramo detrás de otro. Paralelizarla acortaría ~3× el tiempo de un episodio de 10 min, pero choca con el límite de concurrencia del plan de ElevenLabs. Mejora futura si hace falta.
