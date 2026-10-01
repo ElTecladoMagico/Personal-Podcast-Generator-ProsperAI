@@ -7,3 +7,9 @@
 # Python
 __pycache__/
 .venv/
+
+# Local data and builds
+.env.local
+data/
+node_modules/
+dist/

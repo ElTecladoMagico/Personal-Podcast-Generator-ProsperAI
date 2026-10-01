@@ -1,0 +1,22 @@
+# Local development only: Postgres on port 5433 (production compose lives in deploy/).
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: podcast
+      POSTGRES_PASSWORD: podcast
+      POSTGRES_DB: podcast
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    configs:
+      - source: create_test_db
+        target: /docker-entrypoint-initdb.d/create_test_db.sql
+
+configs:
+  create_test_db:
+    content: CREATE DATABASE podcast_test;
+
+volumes:
+  pgdata:
