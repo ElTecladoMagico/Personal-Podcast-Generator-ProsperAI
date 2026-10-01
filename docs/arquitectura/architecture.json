@@ -82,7 +82,7 @@
       "id": "api",
       "type": "backend",
       "label": "FastAPI",
-      "sublabel": "REST · SSE · RSS · mp3",
+      "sublabel": "REST · RSS · mp3",
       "pos": [
         700,
         300
@@ -124,7 +124,7 @@
       "id": "pipeline",
       "type": "backend",
       "label": "Episode pipeline",
-      "sublabel": "6-step newsroom",
+      "sublabel": "6 steps · thread pool",
       "pos": [
         700,
         620
@@ -376,8 +376,9 @@
       "dot": "violet",
       "title": "Deliberate simplifications",
       "items": [
-        "Single VPS: scheduler and pipeline run in the API process",
-        "No queue, no object storage, no ffmpeg",
+        "Single VPS: scheduler and 3-thread pipeline pool inside the API process",
+        "No queue, no object storage; ffmpeg only to stitch mp3 chunks",
+        "Progress via 1.5 s polling of episode.status",
         "Upgrade path: Cloud Run + managed Postgres + R2 + Cloud Scheduler"
       ]
     }
