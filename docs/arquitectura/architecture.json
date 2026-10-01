@@ -1,0 +1,385 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Personal Podcast Generator — System Architecture",
+    "output": "docs/arquitectura/architecture.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "listener",
+      "type": "external",
+      "label": "Listener",
+      "sublabel": "browser / mobile PWA",
+      "pos": [
+        30,
+        300
+      ],
+      "size": [
+        120,
+        64
+      ]
+    },
+    {
+      "id": "clerk",
+      "type": "security",
+      "label": "Clerk",
+      "sublabel": "sign-in · JWT · admin role",
+      "pos": [
+        210,
+        110
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "spa",
+      "type": "frontend",
+      "label": "Web App",
+      "sublabel": "React + Vite + shadcn",
+      "tag": "app + /admin",
+      "pos": [
+        210,
+        300
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "podcast_apps",
+      "type": "external",
+      "label": "Podcast apps",
+      "sublabel": "Apple · Overcast",
+      "pos": [
+        30,
+        480
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "caddy",
+      "type": "cloud",
+      "label": "Caddy",
+      "sublabel": "auto-HTTPS reverse proxy",
+      "pos": [
+        480,
+        300
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "FastAPI",
+      "sublabel": "REST · SSE · RSS · mp3",
+      "pos": [
+        700,
+        300
+      ],
+      "size": [
+        170,
+        72
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "users · episodes · events",
+      "pos": [
+        960,
+        440
+      ],
+      "size": [
+        200,
+        64
+      ]
+    },
+    {
+      "id": "scheduler",
+      "type": "backend",
+      "label": "Scheduler",
+      "sublabel": "APScheduler · every 10 min",
+      "pos": [
+        440,
+        620
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "pipeline",
+      "type": "backend",
+      "label": "Episode pipeline",
+      "sublabel": "6-step newsroom",
+      "pos": [
+        700,
+        620
+      ],
+      "size": [
+        170,
+        80
+      ]
+    },
+    {
+      "id": "audio",
+      "type": "database",
+      "label": "Audio volume",
+      "sublabel": "/data/audio/*.mp3",
+      "pos": [
+        960,
+        628
+      ],
+      "size": [
+        200,
+        64
+      ]
+    },
+    {
+      "id": "news",
+      "type": "external",
+      "label": "News sources",
+      "sublabel": "RSS · Guardian · HN",
+      "pos": [
+        300,
+        860
+      ],
+      "size": [
+        200,
+        64
+      ]
+    },
+    {
+      "id": "web",
+      "type": "external",
+      "label": "Publisher sites",
+      "sublabel": "article scraping",
+      "pos": [
+        530,
+        860
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "openai",
+      "type": "external",
+      "label": "OpenAI",
+      "sublabel": "editor · writer · checker",
+      "pos": [
+        730,
+        860
+      ],
+      "size": [
+        180,
+        64
+      ]
+    },
+    {
+      "id": "eleven",
+      "type": "external",
+      "label": "ElevenLabs",
+      "sublabel": "eleven_v3 dialogue",
+      "pos": [
+        940,
+        860
+      ],
+      "size": [
+        200,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Netlify (static hosting)",
+      "wraps": [
+        "spa"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "VPS · docker compose",
+      "wraps": [
+        "caddy",
+        "api",
+        "db",
+        "scheduler",
+        "pipeline",
+        "audio"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "listener-spa",
+      "from": "listener",
+      "to": "spa",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "spa-clerk",
+      "from": "spa",
+      "to": "clerk",
+      "label": "sign in",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "spa-caddy",
+      "from": "spa",
+      "to": "caddy",
+      "label": "REST + JWT",
+      "variant": "emphasis"
+    },
+    {
+      "id": "caddy-api",
+      "from": "caddy",
+      "to": "api",
+      "label": "proxy"
+    },
+    {
+      "id": "clerk-api",
+      "from": "clerk",
+      "to": "api",
+      "label": "JWKS verify",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "top"
+    },
+    {
+      "id": "podcast-caddy",
+      "from": "podcast_apps",
+      "to": "caddy",
+      "label": "private RSS + mp3",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "bottom"
+    },
+    {
+      "id": "api-db",
+      "from": "api",
+      "to": "db",
+      "label": "SQL",
+      "fromSide": "right",
+      "toSide": "top"
+    },
+    {
+      "id": "api-pipeline",
+      "from": "api",
+      "to": "pipeline",
+      "label": "Generate now",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "scheduler-pipeline",
+      "from": "scheduler",
+      "to": "pipeline",
+      "label": "due episodes"
+    },
+    {
+      "id": "pipeline-db",
+      "from": "pipeline",
+      "to": "db",
+      "label": "status + script",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "pipeline-audio",
+      "from": "pipeline",
+      "to": "audio",
+      "label": "write mp3",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "pipeline-news",
+      "from": "pipeline",
+      "to": "news",
+      "label": "1 fetch",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "pipeline-web",
+      "from": "pipeline",
+      "to": "web",
+      "label": "3 scrape",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "pipeline-openai",
+      "from": "pipeline",
+      "to": "openai",
+      "label": "2 edit · 4 write · 5 verify",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "pipeline-eleven",
+      "from": "pipeline",
+      "to": "eleven",
+      "label": "6 voice",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Episode pipeline (newsroom)",
+      "items": [
+        "1 Reporter: ~40 candidate headlines per user",
+        "2 Editor LLM: picks 5–7 stories (interests, novelty, already covered, feedback)",
+        "3 Research: scrapes full text of picked stories only",
+        "4 Scriptwriter LLM: JSON chapters + turns with sourceIds",
+        "5 Fact-checker LLM: flags unsupported turns, one rewrite round",
+        "6 Hosts: ElevenLabs per chapter, timestamps for synced transcript"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "State & persistence",
+      "items": [
+        "episode.status drives live progress UI, retries and ops metrics",
+        "events table feeds personalization and the /admin dashboard",
+        "FastAPI serves mp3 + RSS from the audio volume",
+        "Ask the hosts: API answers a listener question with chapter context (LLM + short TTS)"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Deliberate simplifications",
+      "items": [
+        "Single VPS: scheduler and pipeline run in the API process",
+        "No queue, no object storage, no ffmpeg",
+        "Upgrade path: Cloud Run + managed Postgres + R2 + Cloud Scheduler"
+      ]
+    }
+  ]
+}
