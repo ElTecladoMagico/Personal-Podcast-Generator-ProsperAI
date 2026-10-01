@@ -55,8 +55,9 @@ facts faithfully; keep names of people, companies and places as they are.
   deaths, disasters or violence (except [serious] or [pause]).
 
 ## Length
-Aim for `target_chars` characters of spoken text in total (±15 %), split fairly between the
-stories; heavier stories may get a bit more.
+`target_chars` is a MAXIMUM for the spoken text in total: land between 90 % and 100 % of it
+(longer scripts are cut). Split it fairly between the stories; heavier stories may get a bit
+more. Intro and outro together: about 10 % of it.
 
 ## Title and summary
 `title`: creative but clear, at most 70 characters, in `language`. `summary`: at most 280

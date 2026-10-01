@@ -15,8 +15,8 @@ from app.pipeline.run import add_cost, effective_minutes, save_work
 from app.schemas import Article, EditorPick, EditorSelection, Preferences, Script
 
 PROMPT = (Path(__file__).parent / "prompts" / "writer.md").read_text()
-CHARS_PER_MINUTE = 900  # measured: ElevenLabs v3 dialogue reads ~900 characters a minute
-MAX_OVERSHOOT = 1.3  # beyond +30 % we cut closing turns instead of paying for the audio
+CHARS_PER_MINUTE = 850  # measured 2026-10-01: eleven_v3 dialogue reads ~855 characters a minute
+MAX_OVERSHOOT = 1.15  # beyond +15 % we cut closing turns instead of paying for the audio
 AUDIO_TAGS = {
     "laughs",
     "chuckles",
