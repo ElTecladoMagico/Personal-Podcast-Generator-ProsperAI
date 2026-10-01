@@ -1,0 +1,23 @@
+# 0005 · Autenticación: Clerk
+
+**Estado:** Aceptada
+
+## Contexto
+Varios usuarios con cuentas propias y un rol de administrador para el dashboard interno. La autenticación no es lo que se evalúa: debe costar el mínimo código posible y verse profesional.
+
+## Decisión
+**Clerk**: componentes ya hechos `<SignIn/>` y `<UserButton/>` en React. El backend verifica el JWT con las claves públicas (JWKS) de Clerk, sin llamadas por petición. Rol admin en `publicMetadata.role = "admin"`.
+
+## Alternativas
+
+| Opción | Pros | Contras |
+|---|---|---|
+| **Clerk (elegida)** | Gratis hasta 50.000 usuarios retenidos/mes. UI de login lista y bonita. Google/GitHub/email sin código. JWT estándar. | Dependencia de un tercero (sin autoalojamiento). Los usuarios viven fuera de nuestra BD: guardamos su `clerk_id`. |
+| Firebase Auth | Gratis, tienes cuenta | UI menos pulida (FirebaseUI está en desuso). Verificar tokens en Python requiere `firebase-admin`. |
+| Auth.js / FastAPI-Users | Sin terceros | Mucho más código propio y seguridad a nuestro cargo (hash, reseteo de contraseña, emails) |
+| Supabase Auth | Gratis | Nos acoplaría a Supabase como BD |
+| Auth0 | Maduro | Más configuración. Capa gratuita menor. |
+
+## Consecuencias
+- Al primer acceso autenticado creamos la fila en `users` (*upsert* por `clerk_id`).
+- El RSS privado no puede usar JWT (las apps de podcasts no lo envían): usa un **token secreto en la URL** del feed, revocable. Ver [0011](0011-entrega-rss-privado.md).
