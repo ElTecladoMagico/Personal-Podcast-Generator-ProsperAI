@@ -2,16 +2,23 @@
 
 import calendar
 import json
+import logging
 import math
 import re
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
+from functools import partial
+from itertools import zip_longest
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import feedparser
 import httpx
 
 from app.config import settings
-from app.schemas import Candidate
+from app.schemas import Candidate, Preferences
+
+log = logging.getLogger(__name__)
 
 USER_AGENT = "PersonalPodcastBot/1.0 (+https://podcast.scuda.es)"
 http = httpx.Client(timeout=10, follow_redirects=True, headers={"User-Agent": USER_AGENT})
@@ -90,7 +97,7 @@ def parse_google_news(xml: bytes, interest: str, since: datetime) -> list[Candid
     return candidates
 
 
-def fetch_google_news(interest: str, lang: str, since: datetime, limit: int = 8):
+def fetch_google_news(interest: str, since: datetime, lang: str = "en", limit: int = 8):
     r = http.get(google_news_feed_url(interest, lang, since))
     r.raise_for_status()
     return parse_google_news(r.content, interest, since)[:limit]
@@ -215,3 +222,51 @@ def fetch_hn(interest: str, since: datetime, limit: int = 5) -> list[Candidate]:
     r = http.get("https://hn.algolia.com/api/v1/search", params=params)
     r.raise_for_status()
     return parse_hn(r.json(), interest)
+
+
+# --- All sources together --------------------------------------------------------
+
+Fetcher = Callable[[str, datetime], list[Candidate]]  # (interest, since) -> candidates
+MAX_CANDIDATES = 60
+
+
+def interleave(lists: list[list[Candidate]]) -> list[Candidate]:
+    """Round robin: one from each list in turn, so no single list fills the cap."""
+    return [c for row in zip_longest(*lists) for c in row if c is not None]
+
+
+def gather_candidates(
+    prefs: Preferences, since: datetime, fetchers: list[Fetcher] | None = None
+) -> list[Candidate]:
+    """Step 1: every interest × every source in parallel, then mix, filter, dedupe and cap.
+
+    Sources alternate within an interest and interests alternate (heaviest first), so the
+    editor gets a varied list. A failing source is logged and skipped.
+    """
+    if fetchers is None:
+        fetchers = [partial(fetch_google_news, lang=prefs.language), fetch_exa, fetch_hn]
+    topics = [i.topic for i in sorted(prefs.interests, key=lambda i: -i.weight)]
+    jobs = [(topic, fetch) for topic in topics for fetch in fetchers]
+
+    def run(job: tuple[str, Fetcher]) -> list[Candidate]:
+        topic, fetch = job
+        try:
+            return fetch(topic, since)
+        except Exception:  # one source down must never sink the episode
+            log.warning("source failed for %r", topic, exc_info=True)
+            return []
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        results = list(pool.map(run, jobs))
+
+    per_topic = [
+        interleave(results[i : i + len(fetchers)]) for i in range(0, len(jobs), len(fetchers))
+    ]
+    avoid = [a.lower() for a in prefs.avoid if a.strip()]
+    allowed = [
+        c
+        for c in interleave(per_topic)
+        if not any(a in f"{c.title} {c.snippet or ''}".lower() for a in avoid)
+    ]
+    capped = dedupe(allowed)[:MAX_CANDIDATES]
+    return [c.model_copy(update={"id": f"c{n}"}) for n, c in enumerate(capped, start=1)]

@@ -5,9 +5,10 @@ from urllib.parse import urlsplit
 
 import pytest
 
-from app.schemas import Candidate
+from app.schemas import Candidate, Preferences
 from app.sources import (
     dedupe,
+    gather_candidates,
     google_news_feed_url,
     normalize_title,
     normalize_url,
@@ -104,7 +105,7 @@ def test_live_google_news_link_resolves_to_publisher():
     from app.sources import fetch_google_news, resolve_google_news
 
     since = datetime.now(UTC).replace(hour=0, minute=0)
-    items = fetch_google_news("Formula 1", "en", since)
+    items = fetch_google_news("Formula 1", since, lang="en")
     assert items, "Google News returned nothing"
     url = resolve_google_news(items[0].url)
     assert url and "google.com" not in url
@@ -156,3 +157,77 @@ def test_parse_hn_skips_ask_hn_and_maps_fields():
     assert first.url == hit["url"] and first.title == hit["title"]
     assert first.origin == "hn" and first.source == urlsplit(hit["url"]).netloc.removeprefix("www.")
     assert first.published_at == datetime.fromtimestamp(hit["created_at_i"], UTC)
+
+
+# --- gather_candidates -----------------------------------------------------------
+
+SINCE = datetime(2026, 9, 30, tzinfo=UTC)
+HOSTS = [{"name": "Sarah", "voice_id": "v1"}, {"name": "George", "voice_id": "v2"}]
+
+
+def prefs(**kw) -> Preferences:
+    data = {
+        "interests": [{"topic": "AI", "weight": 5}, {"topic": "F1", "weight": 2}],
+        "hosts": HOSTS,
+    }
+    return Preferences.model_validate(data | kw)
+
+
+def fake_source(origin: str, n: int = 3):
+    def fetch(interest: str, since: datetime) -> list[Candidate]:
+        assert since == SINCE
+        return [
+            cand(
+                f"https://{origin}.test/{interest}/{i}",
+                f"{origin} {interest} story {i}",
+                origin="hn",
+                source=origin,
+                interest=interest,
+            )
+            for i in range(n)
+        ]
+
+    return fetch
+
+
+def broken_source(interest: str, since: datetime) -> list[Candidate]:
+    raise RuntimeError("source down")
+
+
+def test_gather_assigns_ids_and_mixes_sources_and_interests():
+    items = gather_candidates(prefs(), SINCE, fetchers=[fake_source("gn"), fake_source("exa")])
+
+    assert [c.id for c in items] == [f"c{i}" for i in range(1, 13)]
+    # round robin: heaviest interest first, and sources alternate within an interest
+    assert [(c.interest, c.source) for c in items[:4]] == [
+        ("AI", "gn"),
+        ("F1", "gn"),
+        ("AI", "exa"),
+        ("F1", "exa"),
+    ]
+
+
+def test_a_broken_source_never_breaks_the_episode():
+    items = gather_candidates(prefs(), SINCE, fetchers=[broken_source, fake_source("hn")])
+    assert len(items) == 6 and {c.source for c in items} == {"hn"}
+
+
+def test_avoid_terms_filter_title_and_snippet_case_insensitively():
+    def source(interest, since):
+        return [
+            cand("https://x.test/1", "Crypto crash", interest=interest),
+            cand("https://x.test/2", "Calm day", snippet="nothing about CRYPTO", interest=interest),
+            cand("https://x.test/3", "Chips", interest=interest),
+        ]
+
+    items = gather_candidates(prefs(avoid=["crypto"]), SINCE, fetchers=[source])
+    assert [c.title for c in items] == ["Chips"]
+
+
+def test_dedupe_across_sources_and_cap(monkeypatch):
+    from app import sources
+
+    items = gather_candidates(prefs(), SINCE, fetchers=[fake_source("gn"), fake_source("gn")])
+    assert len(items) == 6  # the second source repeats the first one
+    monkeypatch.setattr(sources, "MAX_CANDIDATES", 4)
+    assert len(gather_candidates(prefs(), SINCE, fetchers=[fake_source("gn")])) == 4
