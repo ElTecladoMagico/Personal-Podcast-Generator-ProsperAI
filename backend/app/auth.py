@@ -60,12 +60,13 @@ def current_user(claims: Claims, session: DbSession) -> User:
     if user is None:
         user = User(clerk_id=claims["sub"], email=email, display_name=name)
         session.add(user)
-        session.add(Event(user_id=user.id, type="user_signed_up"))
         try:
-            session.commit()
+            session.flush()  # insert the user first: the event below references it
         except IntegrityError:  # two first requests raced; the other one created the user
             session.rollback()
-            user = session.exec(select(User).where(User.clerk_id == claims["sub"])).one()
+            return session.exec(select(User).where(User.clerk_id == claims["sub"])).one()
+        session.add(Event(user_id=user.id, type="user_signed_up"))
+        session.commit()
     elif (user.email, user.display_name) != (email, name):
         user.email, user.display_name = email, name
         session.commit()
