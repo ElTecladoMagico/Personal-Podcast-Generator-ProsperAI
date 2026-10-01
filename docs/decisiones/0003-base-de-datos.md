@@ -1,6 +1,6 @@
 # 0003 · Base de datos: PostgreSQL
 
-**Estado:** Propuesta
+**Estado:** Aceptada
 
 ## Contexto
 Producto multiusuario: cuentas con preferencias, episodios, historias ya contadas (memoria) y eventos de uso (feedback y dashboard). Debe ser persistente y soportar acceso concurrente: API atendiendo usuarios mientras el pipeline escribe progreso.

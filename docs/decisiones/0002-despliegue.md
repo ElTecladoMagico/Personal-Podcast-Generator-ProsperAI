@@ -1,6 +1,6 @@
 # 0002 · Despliegue: Netlify (frontend) + VPS con docker compose (backend)
 
-**Estado:** Propuesta
+**Estado:** Aceptada
 
 ## Contexto
 Disponemos de Netlify, Google Cloud Run (activo) y una VPS. La generación de un episodio tarda 1–3 min y hay un programador que debe despertarse cada pocos minutos. Los evaluadores probarán el producto en una URL pública.
@@ -17,6 +17,12 @@ Disponemos de Netlify, Google Cloud Run (activo) y una VPS. La generación de un
 | Cloud Run | Gestionado, escala a cero, capa gratuita generosa | Contenedores efímeros y sin estado: obliga a BD externa, almacenamiento externo (GCS/R2), Cloud Scheduler para el cron y una solución para el trabajo en segundo plano (por defecto la CPU solo está asignada durante la petición; harían falta Cloud Tasks o Cloud Run Jobs). Son 3–4 piezas más que explicar. |
 | Railway | DX excelente, volúmenes, Postgres en un clic | **No es gratis de forma sostenida**: prueba de 5 $ durante 30 días, luego un plan Free de 1 $/mes con 0,5 GB de RAM (insuficiente) o Hobby de 5 $/mes. Ventaja real solo frente a gestionar la VPS, que ya tenemos. |
 | Vercel / Netlify Functions para el backend | Mismo proveedor que el frontend | Límites de duración de función frente a generaciones de minutos. Sin proceso persistente ni disco. |
+
+## Concreción
+- **Servidor:** VPS Hetzner CX23 existente (2 vCPU, 4 GB RAM, 40 GB disco, Helsinki), **compartida con otro proyecto** para no pagar más.
+- **Dominio:** `scuda.es`. Subdominios previstos: `podcast.scuda.es` → Netlify (CNAME) y `api.podcast.scuda.es` → VPS (registro A).
+- **Convivencia con el proyecto existente:** si ya hay un proxy inverso en 80/443 (nginx, Caddy o Traefik), **reutilizamos ese** con un bloque nuevo para nuestro subdominio en vez de levantar otro Caddy. Nuestro compose usa su propia red y su propio volumen, y no expone Postgres al exterior.
+- **Presupuesto de recursos:** Postgres ~150 MB + API ~300 MB en reposo. La generación hace sobre todo esperas de red (poca CPU). Límites `mem_limit` en el compose para no afectar al otro proyecto.
 
 ## Consecuencias
 - El "dolor de cabeza" que ahorraría Railway (TLS, reinicios, logs) lo cubren Caddy y `restart: unless-stopped`.
