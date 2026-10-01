@@ -106,7 +106,8 @@ def generate_episode(episode_id: uuid.UUID, steps: dict[str, Step] | None = None
     with Session(engine) as session:
         ep = session.get(Episode, episode_id)
         prefs = Preferences.model_validate(ep.prefs_snapshot)
-        start = ep.failed_stage or STAGES[0]
+        # Resume where it stopped: the failed stage, or the stage a crash interrupted.
+        start = ep.failed_stage or (ep.status if ep.status in STAGES else STAGES[0])
         ep.failed_stage = ep.error = None
         ep.started_at = ep.started_at or datetime.now(UTC)
 

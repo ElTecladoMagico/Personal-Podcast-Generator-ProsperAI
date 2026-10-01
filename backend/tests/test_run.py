@@ -144,3 +144,15 @@ def test_news_window_starts_at_last_episode_but_stays_between_one_day_and_the_de
     assert run.news_window_start(now - timedelta(hours=30), daily, now) == now - timedelta(hours=30)
     assert run.news_window_start(now - timedelta(hours=3), daily, now) == now - timedelta(days=1)
     assert run.news_window_start(now - timedelta(days=20), daily, now) == now - timedelta(days=2)
+
+
+def test_an_interrupted_episode_resumes_at_the_stage_it_was_in():
+    ep, calls = new_episode(), []
+    run.generate_episode(ep.id, steps=fake_steps(calls, fail_at="recording"))
+    with Session(engine) as s:  # simulate a crash during recording: no failed_stage recorded
+        row = s.get(Episode, ep.id)
+        row.status, row.failed_stage, row.error = "recording", None, None
+        s.commit()
+    calls.clear()
+    run.generate_episode(ep.id, steps=fake_steps(calls))
+    assert calls == ["recording"] and load(ep.id).status == "ready"
