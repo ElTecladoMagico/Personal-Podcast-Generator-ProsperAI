@@ -2,6 +2,7 @@ import { useAuth } from '@clerk/react'
 import type { ReactNode } from 'react'
 import { BrowserRouter, Link, Navigate, Outlet, Route, Routes } from 'react-router'
 import { AppShell } from '@/components/AppShell'
+import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
 import { useMe } from '@/lib/api'
 import { useT } from '@/lib/i18n'
@@ -35,7 +36,12 @@ export default function App() {
 /** Renders the nested routes when signed in, `fallback` otherwise (the landing at `/`). */
 function SignedInOr({ fallback }: { fallback: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth()
-  if (!isLoaded) return null
+  if (!isLoaded)
+    return (
+      <div className="grid min-h-svh place-items-center">
+        <Logo />
+      </div>
+    )
   return isSignedIn ? <Outlet /> : fallback
 }
 

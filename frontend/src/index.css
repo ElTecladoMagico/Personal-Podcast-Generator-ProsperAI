@@ -101,6 +101,18 @@
     --chart-5: oklch(0.7 0.12 320);
 }
 
+/* Landing waveform: bars breathe at different speeds; off with reduced motion. */
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+.wave-bar {
+  animation: wave var(--wave-duration) ease-in-out var(--wave-delay) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wave-bar { animation: none; }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

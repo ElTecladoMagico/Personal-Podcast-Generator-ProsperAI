@@ -62,7 +62,7 @@ export function AppShell() {
   )
 }
 
-function LanguageMenu() {
+export function LanguageMenu() {
   const { lang, setLang, t } = useT()
   return (
     <DropdownMenu>
