@@ -42,7 +42,7 @@ Lo que todas las ramas deben respetar. Cambiar algo aquí = cambiarlo en el mism
 │   ├── scripts/              # generate_episode_cli.py, seed_mock_metrics.py, voice_previews.py
 │   └── tests/
 ├── frontend/
-│   ├── package.json  vite.config.ts  index.html  components.json  netlify.toml
+│   ├── package.json  vite.config.ts  index.html  components.json
 │   ├── .env.local            # NO versionado (VITE_*)
 │   ├── .env.example
 │   ├── public/voices/*.mp3   # muestras de voz pregeneradas (rama 8)
@@ -50,7 +50,7 @@ Lo que todas las ramas deben respetar. Cambiar algo aquí = cambiarlo en el mism
 │       ├── main.tsx  App.tsx  index.css
 │       ├── lib/api.ts        # fetch con token + tipos generados
 │       ├── lib/api-types.ts  # generado con openapi-typescript (versionado)
-│       ├── lib/i18n.ts       # diccionario EN/ES + hook
+│       ├── lib/i18n.tsx      # diccionario EN/ES + provider + hook
 │       ├── components/ui/    # shadcn
 │       ├── components/…      # por feature
 │       └── pages/            # Landing, Onboarding, Home, Episode, Settings, Admin
@@ -59,6 +59,7 @@ Lo que todas las ramas deben respetar. Cambiar algo aquí = cambiarlo en el mism
 │   ├── Caddyfile.snippet     # bloque a añadir al Caddy de instanta
 │   └── README.md             # runbook
 ├── docker-compose.yml        # desarrollo local: solo Postgres
+├── netlify.toml              # build del frontend (base = frontend/); en la raíz para no configurar nada en Netlify
 ├── docs/  solution.md  sample.mp3  README.md
 ```
 
