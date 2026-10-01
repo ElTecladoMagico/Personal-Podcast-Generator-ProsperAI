@@ -14,3 +14,7 @@ __pycache__/
 data/
 node_modules/
 dist/
+
+# Logs and OS files
+*.log
+.DS_Store
