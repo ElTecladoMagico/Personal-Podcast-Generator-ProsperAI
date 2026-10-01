@@ -15,6 +15,12 @@ def test_me_requires_a_token():
     assert TestClient(app).get("/me").status_code == 401
 
 
+def test_me_rejects_a_malformed_token():
+    r = TestClient(app).get("/me", headers={"Authorization": "Bearer not-a-jwt"})
+    assert r.status_code == 401
+    assert r.json() == {"detail": "Invalid or expired session token"}
+
+
 def test_first_call_creates_user_once(client):
     first = client.get("/me").json()
     second = client.get("/me").json()
