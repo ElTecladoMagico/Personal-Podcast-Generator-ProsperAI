@@ -41,7 +41,7 @@ function Player({ episode, script }: { episode: EpisodeDetail; script: Script })
   const chapter = script.chapters[position.chapter]
   const speaker = chapter?.turns[position.turn]?.speaker ?? 0
   const sources = useMemo(() => episode.sources ?? {}, [episode.sources])
-  const [votes, setVotes] = useState<Record<string, 'up' | 'down'>>({})
+  const [votes, setVotes] = useState(episode.votes) // saved ones, so a reload keeps them
 
   // --- analytics ------------------------------------------------------------------
   const started = useRef(false)

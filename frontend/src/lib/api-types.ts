@@ -234,6 +234,10 @@ export interface components {
             };
             /** Audio Url */
             audio_url: string | null;
+            /** Votes */
+            votes: {
+                [key: string]: "up" | "down";
+            };
         };
         /** EpisodeSummary */
         EpisodeSummary: {

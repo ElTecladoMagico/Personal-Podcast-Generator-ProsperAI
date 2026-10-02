@@ -166,3 +166,17 @@ def test_retry_only_failed_and_resumes_at_failed_stage(client, onboarded, submit
     with Session(engine) as s:
         assert s.get(Episode, ep["id"]).failed_stage == "recording"
     assert len(submitted) == 2
+
+
+def test_detail_remembers_the_listeners_last_vote_per_story(client, onboarded, submitted):
+    ep = client.post("/episodes").json()
+    for story, value in [("s1", "up"), ("s2", "down"), ("s1", "down")]:  # changed their mind
+        client.post(
+            "/events",
+            json={
+                "type": "feedback",
+                "episode_id": ep["id"],
+                "props": {"story_id": story, "value": value},
+            },
+        )
+    assert client.get(f"/episodes/{ep['id']}").json()["votes"] == {"s1": "down", "s2": "down"}
