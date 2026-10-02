@@ -38,7 +38,7 @@ def test_me_shape_for_new_user(client):
 
     assert me["email"] == "ana@example.com" and me["display_name"] == "Ana"
     assert me["onboarded"] is False and me["is_admin"] is False
-    assert me["preferences"] == {} and me["next_run_at"] is None
+    assert me["preferences"] is None and me["next_run_at"] is None
     assert me["feed_url"] == f"http://localhost:8000/feeds/{token}.xml"
 
 

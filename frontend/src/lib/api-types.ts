@@ -21,6 +21,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Preferences */
+        put: operations["save_preferences_me_preferences_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/preferences/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Preferences
+         * @description Turns what the user's AI answered into a partial Preferences, without saving it.
+         */
+        post: operations["import_preferences_me_preferences_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/audio/{episode_id}.mp3": {
         parameters: {
             query?: never;
@@ -88,6 +125,23 @@ export interface paths {
         put?: never;
         /** Retry */
         post: operations["retry_episodes__episode_id__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/voices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Voices */
+        get: operations["list_voices_voices_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -202,6 +256,66 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** Host */
+        Host: {
+            /** Name */
+            name: string;
+            /** Voice Id */
+            voice_id: string;
+        };
+        /** ImportIn */
+        ImportIn: {
+            /** Text */
+            text: string;
+        };
+        /** ImportedInterest */
+        ImportedInterest: {
+            /** Topic */
+            topic: string;
+            /** Why */
+            why?: string | null;
+            /**
+             * Weight
+             * @default 3
+             */
+            weight: number;
+        };
+        /**
+         * ImportedPreferences
+         * @description A partial Preferences: the onboarding fills the rest (format, hosts, schedule).
+         */
+        ImportedPreferences: {
+            /** Interests */
+            interests: components["schemas"]["ImportedInterest"][];
+            /**
+             * Avoid
+             * @default []
+             */
+            avoid: string[];
+            /**
+             * Sources I Trust
+             * @default []
+             */
+            sources_i_trust: string[];
+            /** Language */
+            language?: string | null;
+            /** Tone */
+            tone?: ("casual" | "serious" | "nerdy") | null;
+            /** Depth */
+            depth?: ("headlines" | "analysis") | null;
+        };
+        /** Interest */
+        Interest: {
+            /** Topic */
+            topic: string;
+            /** Why */
+            why?: string | null;
+            /**
+             * Weight
+             * @default 3
+             */
+            weight: number;
+        };
         /** MeOut */
         MeOut: {
             /**
@@ -213,10 +327,7 @@ export interface components {
             email: string | null;
             /** Display Name */
             display_name: string | null;
-            /** Preferences */
-            preferences: {
-                [key: string]: unknown;
-            };
+            preferences: components["schemas"]["Preferences"] | null;
             /** Onboarded */
             onboarded: boolean;
             /** Is Admin */
@@ -226,12 +337,97 @@ export interface components {
             /** Next Run At */
             next_run_at: string | null;
         };
+        /** Preferences */
+        Preferences: {
+            /** Interests */
+            interests: components["schemas"]["Interest"][];
+            /**
+             * Avoid
+             * @default []
+             */
+            avoid: string[];
+            /**
+             * Sources I Trust
+             * @default []
+             */
+            sources_i_trust: string[];
+            /**
+             * Language
+             * @default en
+             */
+            language: string;
+            /**
+             * Tone
+             * @default casual
+             * @enum {string}
+             */
+            tone: "casual" | "serious" | "nerdy";
+            /**
+             * Depth
+             * @default analysis
+             * @enum {string}
+             */
+            depth: "headlines" | "analysis";
+            /**
+             * Format
+             * @default duo
+             * @enum {string}
+             */
+            format: "solo" | "duo" | "debate";
+            /**
+             * Duration Min
+             * @default 10
+             * @enum {integer}
+             */
+            duration_min: 5 | 10 | 20;
+            /** Hosts */
+            hosts: components["schemas"]["Host"][];
+            /**
+             * @default {
+             *       "frequency": "daily",
+             *       "time": "07:00",
+             *       "timezone": "Europe/Madrid"
+             *     }
+             */
+            schedule: components["schemas"]["Schedule"];
+        };
+        /** PreferencesIn */
+        PreferencesIn: {
+            preferences: components["schemas"]["Preferences"];
+            /**
+             * Method
+             * @default manual
+             * @enum {string}
+             */
+            method: "import" | "manual";
+        };
         /** Progress */
         Progress: {
             /** Done */
             done: number;
             /** Total */
             total: number;
+        };
+        /** Schedule */
+        Schedule: {
+            /**
+             * Frequency
+             * @default daily
+             * @enum {string}
+             */
+            frequency: "off" | "daily" | "weekdays" | "weekly";
+            /**
+             * Time
+             * @default 07:00
+             */
+            time: string;
+            /** Weekday */
+            weekday?: number | null;
+            /**
+             * Timezone
+             * @default Europe/Madrid
+             */
+            timezone: string;
         };
         /** Source */
         Source: {
@@ -256,6 +452,29 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** Voice */
+        Voice: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "es" | "en";
+            /**
+             * Gender
+             * @enum {string}
+             */
+            gender: "female" | "male";
+            /** Descriptor */
+            descriptor: {
+                [key: string]: string;
+            };
+            /** Preview */
+            preview: string;
         };
     };
     responses: never;
@@ -282,6 +501,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeOut"];
+                };
+            };
+        };
+    };
+    save_preferences_me_preferences_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferencesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_preferences_me_preferences_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportedPreferences"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -415,6 +700,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_voices_voices_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Voice"][];
                 };
             };
         };
