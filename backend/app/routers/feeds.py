@@ -74,7 +74,8 @@ def build_feed(user: User, episodes: list[Episode]) -> bytes:
     return ET.tostring(rss, encoding="utf-8", xml_declaration=True)
 
 
-@router.api_route("/feeds/{feed_token}.xml", methods=["GET", "HEAD"])  # apps check with HEAD
+# Apps check with HEAD; out of OpenAPI (a duplicate operation id, and no frontend client).
+@router.api_route("/feeds/{feed_token}.xml", methods=["GET", "HEAD"], include_in_schema=False)
 def get_feed(feed_token: str, session: DbSession) -> Response:
     user = session.exec(select(User).where(User.feed_token == feed_token)).first()
     if not user:

@@ -12,7 +12,13 @@ router = APIRouter()
 
 
 # Podcast apps check the file with HEAD before downloading it.
-@router.api_route("/audio/{episode_id}.mp3", methods=["GET", "HEAD"], response_class=FileResponse)
+# Not in OpenAPI: GET+HEAD would duplicate the operation id, and only <audio> and apps use it.
+@router.api_route(
+    "/audio/{episode_id}.mp3",
+    methods=["GET", "HEAD"],
+    response_class=FileResponse,
+    include_in_schema=False,
+)
 def get_audio(
     episode_id: uuid.UUID,
     k: str,
