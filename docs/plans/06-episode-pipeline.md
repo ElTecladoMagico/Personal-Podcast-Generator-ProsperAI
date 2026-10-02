@@ -181,4 +181,14 @@ Máximo 2 llamadas al verificador y 1 reescritura: coste y duración acotados.
 - **Mismo medio con dos nombres:** Google News da "El País" y Exa da "elpais.com"; la regla de "2 medios distintos por historia" podría coger el mismo medio dos veces. Impacto bajo (solo reduce la variedad).
 - **Crash entre `recording` y `finish()`:** el episodio queda en `recording` y al reanudarse vuelve a grabar (≈ 1 crédito por carácter). Ventana de milisegundos; aceptado.
 - **Coste de Exa** (~0,007 USD por búsqueda) y **créditos de un tramo de TTS que falla** no se suman a `episodes.cost`. Se puede estimar en el dashboard (rama 12) como nº de intereses × 0,007.
-- **Grabación secuencial:** un tramo detrás de otro. Paralelizarla acortaría ~3× el tiempo de un episodio de 10 min, pero choca con el límite de concurrencia del plan de ElevenLabs. Mejora futura si hace falta.
+
+### Revisión `thermo-nuclear-code-quality-review` (2026-10-02)
+Veredicto inicial: no aprobada por complejidad incidental. Cambios aplicados (`refactor(pipeline): typed Work and Usage…`), con el mismo comportamiento verificado en un episodio real:
+1. **`work` tipado** (`Work` en `app/pipeline/state.py`): el orquestador lo carga una vez, lo pasa a cada paso y lo guarda solo si el paso termina bien. Desaparecen `save_work`, las claves en texto y las validaciones repetidas; cada etapa es atómica.
+2. **`Usage` sumable** (`app/schemas.py`): cada paso devuelve su coste y el orquestador lo acumula. `episodes.cost` pasa a ser plano (contrato actualizado).
+3. **Sin imports diferidos:** los pasos ya no importan el orquestador, así que `STEPS` es un dict normal; el paso 1 vive en `reporter.py`.
+4. **Rama muerta eliminada** en `finish()`; la memoria sale de los capítulos del guion final (una historia que eliminó el verificador no cuenta como escuchada).
+5. `to_script` construye el `Script` tipado; `research()` usa `article_for()`; `storage.new_audio_file()` crea el directorio.
+6. **Tramos de voz en paralelo** (3): `eleven_v3` no admite continuidad, así que son independientes. `recording` pasó de 65–91 s a 43 s en un episodio de 2 min.
+
+Mantenido a propósito: `WriterScript` separado de `Script` (contrato explícito entre lo que escribe el modelo y lo que rellena el sistema) y `verify()` con llamadas inyectadas.
