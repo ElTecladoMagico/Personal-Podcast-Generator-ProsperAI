@@ -58,6 +58,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/feed-token/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate Feed Token
+         * @description New private link; apps subscribed with the old one stop getting episodes.
+         */
+        post: operations["rotate_feed_token_me_feed_token_rotate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/audio/{episode_id}.mp3": {
         parameters: {
             query?: never;
@@ -159,6 +179,23 @@ export interface paths {
         put?: never;
         /** Track */
         post: operations["track_events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/feeds/{feed_token}.xml": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Feed */
+        get: operations["get_feed_feeds__feed_token__xml_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -381,8 +418,8 @@ export interface components {
             is_admin: boolean;
             /** Feed Url */
             feed_url: string;
-            /** Next Run At */
-            next_run_at: string | null;
+            /** Next Episode At */
+            next_episode_at: string | null;
         };
         /** Preferences */
         Preferences: {
@@ -647,12 +684,35 @@ export interface operations {
             };
         };
     };
+    rotate_feed_token_me_feed_token_rotate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeOut"];
+                };
+            };
+        };
+    };
     get_audio_audio__episode_id__mp3_get: {
         parameters: {
             query: {
                 k: string;
+                src?: string | null;
             };
-            header?: never;
+            header?: {
+                range?: string | null;
+            };
             path: {
                 episode_id: string;
             };
@@ -819,6 +879,37 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_feed_feeds__feed_token__xml_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                feed_token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
             };
             /** @description Validation Error */
             422: {

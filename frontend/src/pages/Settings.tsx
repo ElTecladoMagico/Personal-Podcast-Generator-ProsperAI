@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { FeedSection } from '@/components/FeedSection'
 import { InterestsStep } from '@/components/onboarding/InterestsStep'
 import { AvoidStep, HostsStep, ScheduleStep, SoundStep } from '@/components/onboarding/steps'
 import { Button } from '@/components/ui/button'
@@ -15,10 +16,10 @@ export default function Settings() {
   const { data: voices } = useVoices()
   if (!me || !voices) return <Skeleton className="h-96 w-full" />
   if (!me.preferences) return null
-  return <SettingsForm initial={me.preferences} voices={voices} />
+  return <SettingsForm initial={me.preferences} voices={voices} feedUrl={me.feed_url} />
 }
 
-function SettingsForm({ initial, voices }: { initial: Preferences; voices: Voice[] }) {
+function SettingsForm({ initial, voices, feedUrl }: { initial: Preferences; voices: Voice[]; feedUrl: string }) {
   const { t } = useT()
   const save = useSavePreferences()
   const [prefs, setPrefs] = useState(initial)
@@ -40,6 +41,11 @@ function SettingsForm({ initial, voices }: { initial: Preferences; voices: Voice
           {s.body}
         </section>
       ))}
+      <section className="space-y-5">
+        <Separator />
+        <h2 className="text-3xl">{t('feed.title')}</h2>
+        <FeedSection feedUrl={feedUrl} />
+      </section>
       <footer className="sticky bottom-0 -mx-4 flex justify-end border-t bg-background/90 px-4 py-4 backdrop-blur">
         <Button size="lg" disabled={save.isPending || prefs.interests.length === 0}
           onClick={() => save.mutate({ preferences: prefs, method: 'manual' }, {

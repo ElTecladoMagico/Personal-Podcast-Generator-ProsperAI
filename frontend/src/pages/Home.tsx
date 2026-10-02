@@ -8,11 +8,12 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ApiError, useMe } from '@/lib/api'
 import { type EpisodeSummary, greetingKey, isTerminal, useEpisode, useEpisodes, useGenerate } from '@/lib/episodes'
-import { useT } from '@/lib/i18n'
+import { nextEpisodeLabel } from '@/lib/feed'
+import { format, useT } from '@/lib/i18n'
 import { useQueryClient } from '@tanstack/react-query'
 
 export default function Home() {
-  const { t } = useT()
+  const { t, lang } = useT()
   const { data: me, error } = useMe()
   const episodes = useEpisodes()
   const generate = useGenerate()
@@ -44,6 +45,7 @@ export default function Home() {
     })
 
   const name = me.display_name ?? me.email ?? ''
+  const next = nextEpisodeLabel(me.next_episode_at, me.preferences?.schedule.timezone ?? 'UTC', lang)
   return (
     <div className="space-y-10">
       <header className="flex flex-wrap items-end justify-between gap-4">
@@ -53,6 +55,7 @@ export default function Home() {
             {name && `, ${name}`}
           </p>
           <h1 className="text-4xl sm:text-5xl">{t('page.home')}</h1>
+          <p className="text-sm text-muted-foreground">{next ? format(t('home.next'), { when: next }) : t('home.onDemand')}</p>
         </div>
         <Button size="lg" onClick={onGenerate} disabled={producing || generate.isPending}>
           <Radio className={producing ? 'motion-safe:animate-pulse' : ''} />
