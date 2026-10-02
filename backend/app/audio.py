@@ -31,6 +31,28 @@ def concat_mp3(parts: list[Path], out: Path) -> None:
         )
 
 
+def change_tempo(src: Path, out: Path, factor: float) -> None:
+    """Speed speech up (factor > 1) without changing the pitch of the voices."""
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-loglevel",
+            "error",
+            "-i",
+            str(src),
+            "-filter:a",
+            f"atempo={factor}",
+            "-c:a",
+            "libmp3lame",
+            "-b:a",
+            "128k",
+            str(out),
+        ],
+        check=True,
+    )
+
+
 def duration(path: Path) -> float:
     """Seconds of audio, as decoded by ffprobe (not the header's estimate)."""
     result = subprocess.run(
