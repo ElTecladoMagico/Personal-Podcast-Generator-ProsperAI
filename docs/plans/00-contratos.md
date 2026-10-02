@@ -295,7 +295,16 @@ Voces *premade* de ElevenLabs **verificadas el 2026-10-01** con la key del proye
 | Charlotte | `XB0fDUnXU5powFXDhCwa` | George | `JBFqnCBsd6RMkjVDRZzb` |
 | Matilda | `XrExE9yKIg1WjnnlVkGX` | Roger | `CwhRBWXzGAHq8TQ4Fs17` |
 
-Los descriptores (género, tono) se completan en la rama 8 escuchando las muestras. Pareja por defecto: Sarah (0) + George (1).
+**Voces de España (castellano)**, de la biblioteca de ElevenLabs (la key puede usarlas por id aunque no tenga `voices_read`), elegidas por el autor tras un A/B el 2026-10-02 ([`06b-voz-espana.md`](06b-voz-espana.md)):
+
+| Nombre en el podcast | Voz de la biblioteca | voice_id |
+|---|---|---|
+| Sara | Sara Martin 3 · joven, conversacional | `gD1IexrzCvsXPHUuT0s3` |
+| Martín | Martin Osborne 6 · conversacional, diálogo casual | `LlZr3QuzbW4WrPjgATHG` |
+| (alternativa) David | David Martin 1 · joven, seguro | `Nh2zY9kknu6z4pZy6FhD` |
+| (alternativa) Eva | Eva Dorado · cálida | `RgXx32WYOGrd7gFNifSf` |
+
+**Pareja por defecto según el idioma del podcast:** `es` → Sara (0) + Martín (1); el resto → Sarah (0) + George (1). Los descriptores del catálogo se completan en la rama 8 escuchando las muestras.
 
 ## 10. Decisiones menores de implementación
 - **Todo síncrono.** Endpoints `def` (FastAPI los corre en su pool de hilos). El pipeline es una función síncrona que se ejecuta en un `ThreadPoolExecutor(max_workers=MAX_CONCURRENT_GENERATIONS)`: el propio pool **es la cola y el límite de concurrencia**. Sin `async` en nuestro código. Ver ADR 0010.
@@ -305,4 +314,4 @@ Los descriptores (género, tono) se completan en la rama 8 escuchando las muestr
 - **Frontend:** `@clerk/react` (Core 3), `react-router` 7, `@tanstack/react-query`, `motion` (animaciones), shadcn/ui + Tailwind 4, `recharts` (vía shadcn charts), `openapi-typescript` (dev).
 - **Antelación de la programación:** `GENERATION_LEAD_MIN = 20`. `next_run_at` = hora del usuario − 20 min, para que el episodio esté listo a la hora pedida. La UI muestra `next_run_at + 20 min`.
 - **Modelos LLM** (constantes en `llm.py`): `EDITOR_MODEL = "gpt-6-luna"`, `WRITER_MODEL = "gpt-6-sol"`, `CHECKER_MODEL = "gpt-6-sol"`, `ASK_MODEL = "gpt-6-luna"` (ADR 0007, "Cambio"). Disponibilidad comprobada con `/v1/models` el 2026-10-01. Precios en `PRICES` (`llm.py`), tomados de la web de OpenAI el mismo día.
-- **ElevenLabs:** `model_id="eleven_v3"`, `output_format="mp3_44100_128"` (192 kbps exige plan Creator), `language_code=prefs.language`, `seed` por episodio. 1 crédito por carácter (cabecera `character-cost`).
+- **ElevenLabs:** `model_id="eleven_v3"`, `output_format="mp3_44100_128"` (192 kbps exige plan Creator), `language_code=prefs.language`, `seed` por episodio, `stability=0.0` (*creative*). El MP3 unido se acelera ×1,1 con `ffmpeg atempo` (el diálogo no tiene parámetro de velocidad) y los tiempos del guion se dividen por 1,1. 1 crédito por carácter.

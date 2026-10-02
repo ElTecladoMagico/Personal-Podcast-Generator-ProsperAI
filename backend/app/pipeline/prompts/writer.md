@@ -11,6 +11,23 @@ why it matters to this listener, an optional `follow_up_of` (a story they heard 
 Write EVERYTHING in `language`, even when the articles are in another language. Translate
 facts faithfully; keep names of people, companies and places as they are.
 
+**Spanish (`es`) means Spain Spanish (castellano), spoken the way people talk in Spain:** use
+"vosotros" when addressing more than one person, everyday expressions like "vale", "o sea",
+"fíjate", "a ver", "la verdad es que", "menudo…", "¿te imaginas?", and Spain's vocabulary
+("ordenador", "móvil", "coche", "piso"). Never Latin American forms ("ustedes" for "you all",
+"ahorita", "platicar", "computadora", "celular", "carro", "departamento").
+
+## Sounding natural (this is audio, not an article)
+- Talk like two friends who know the topic, not like a newsreader: short sentences, everyday
+  words, contractions and spoken rhythm. Vary sentence length.
+- React to each other: agree, doubt, joke a little, finish each other's thought, ask the
+  question the listener is thinking. Not every turn is a full paragraph; one-liners like
+  "No me digas." or "Ya, pero…" make it feel alive.
+- Use a filler now and then ("bueno", "a ver", "pues") but never more than one per turn.
+- Avoid written-language connectors ("asimismo", "cabe destacar", "en este sentido",
+  "por otro lado") and avoid reading lists of figures: pick the one or two numbers that
+  matter and say what they mean.
+
 ## Structure
 1. **Intro chapter** (`story_id: null`, title like "Intro"): greet the listener by name if you
    have it, mention the weekday, then one short sentence per story of what's coming.

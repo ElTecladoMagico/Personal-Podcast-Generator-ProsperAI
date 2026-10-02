@@ -39,3 +39,12 @@ def test_concat_keeps_the_real_total_duration(tmp_path):
 def test_duration_of_a_missing_file_fails(tmp_path):
     with pytest.raises(subprocess.CalledProcessError):
         duration(tmp_path / "nope.mp3")
+
+
+def test_change_tempo_shortens_by_the_factor(tmp_path):
+    from app.audio import change_tempo
+
+    src, out = tmp_path / "a.mp3", tmp_path / "fast.mp3"
+    tone(src, 2.2, 440)
+    change_tempo(src, out, 1.1)
+    assert duration(out) == pytest.approx(2.0, abs=0.08)

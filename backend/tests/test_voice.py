@@ -90,7 +90,7 @@ def test_record_voices_each_chunk_joins_them_and_reports_progress(tmp_path):
     import subprocess
 
     from app.audio import duration
-    from app.pipeline.voice import record
+    from app.pipeline.voice import SPEED, record
     from app.schemas import Host
 
     tone = tmp_path / "tone.mp3"
@@ -134,5 +134,21 @@ def test_record_voices_each_chunk_joins_them_and_reports_progress(tmp_path):
 
     assert calls[0] == ([(T1, "v-sarah"), (T2, "v-george")], "es", 7)
     assert progress == [(1, 2), (2, 2)] and chars == 2 * (len(T1) + len(T2))
-    assert duration(out) == pytest.approx(2 * 5.36, abs=0.1)
-    assert timed.chapters[1].start_s == pytest.approx(duration(tone), abs=0.01)
+    assert duration(out) == pytest.approx(2 * 5.36 / SPEED, abs=0.15)  # sped up after joining
+    assert timed.chapters[1].start_s == pytest.approx(duration(tone) / SPEED, abs=0.01)
+
+
+def test_timeline_follows_a_sped_up_mp3():
+    script = Script(
+        title="t",
+        summary="s",
+        chapters=[Chapter(story_id=None, title="Intro", turns=[turn(T1, 0), turn(T2, 1)])],
+    )
+    response = {"voice_segments": FIXTURE["voice_segments"], "alignment": FIXTURE["alignment"]}
+    chunks = [Chunk(turns=[(0, 0), (0, 1)], response=response, duration=5.36)]
+    normal = build_timeline(script, chunks)
+    fast = build_timeline(script, chunks, speed=1.1)
+    second_normal, second_fast = normal.chapters[0].turns[1], fast.chapters[0].turns[1]
+    assert second_fast.start_s == pytest.approx(second_normal.start_s / 1.1, abs=0.002)
+    assert fast.chapters[0].end_s == pytest.approx(normal.chapters[0].end_s / 1.1, abs=0.002)
+    assert second_fast.words[-1][0] == pytest.approx(second_normal.words[-1][0] / 1.1, abs=0.002)

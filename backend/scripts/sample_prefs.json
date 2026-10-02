@@ -1,14 +1,36 @@
 {
   "interests": [
-    {"topic": "inteligencia artificial", "why": "trabajo en tecnología", "weight": 5},
-    {"topic": "vivienda en España", "weight": 4},
-    {"topic": "Formula 1", "weight": 3},
-    {"topic": "climate tech startups", "weight": 2}
+    {
+      "topic": "inteligencia artificial",
+      "why": "trabajo en tecnología",
+      "weight": 5
+    },
+    {
+      "topic": "vivienda en España",
+      "weight": 4
+    },
+    {
+      "topic": "Formula 1",
+      "weight": 3
+    },
+    {
+      "topic": "climate tech startups",
+      "weight": 2
+    }
   ],
-  "avoid": ["horóscopo", "celebrity gossip"],
+  "avoid": [
+    "horóscopo",
+    "celebrity gossip"
+  ],
   "language": "es",
   "hosts": [
-    {"name": "Sarah", "voice_id": "EXAVITQu4vr4xnSDxMaL"},
-    {"name": "George", "voice_id": "JBFqnCBsd6RMkjVDRZzb"}
+    {
+      "name": "Sara",
+      "voice_id": "gD1IexrzCvsXPHUuT0s3"
+    },
+    {
+      "name": "Martín",
+      "voice_id": "LlZr3QuzbW4WrPjgATHG"
+    }
   ]
 }

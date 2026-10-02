@@ -17,7 +17,7 @@ from elevenlabs import DialogueInput
 from elevenlabs.client import ElevenLabs
 from sqlmodel import Session
 
-from app.audio import concat_mp3, duration
+from app.audio import change_tempo, concat_mp3, duration
 from app.config import settings
 from app.models import Episode
 from app.pipeline.state import Progress, Work, store
@@ -30,6 +30,9 @@ FORMAT = "mp3_44100_128"  # 192 kbps needs a paid Creator plan
 # Chunks are independent (eleven_v3 has no previous_text), so they are voiced in parallel.
 # Kept low because every running episode does this; the SDK retries if we hit a 429.
 PARALLEL_CHUNKS = 3
+STABILITY = 0.0  # eleven_v3: 0.0 creative, 0.5 natural, 1.0 robust. Creative sounded liveliest
+SPEED = 1.1  # dialogue has no speed setting, so the joined MP3 is sped up with ffmpeg
+# Both chosen by ear on 2026-10-02 (A/B in docs/plans/06b-voz-espana.md).
 
 TurnRef = tuple[int, int]  # (chapter index, turn index)
 
@@ -83,7 +86,9 @@ def words_from_alignment(
     return words
 
 
-def build_timeline(script: Script, chunks: list[Chunk]) -> Script:
+def build_timeline(script: Script, chunks: list[Chunk], speed: float = 1.0) -> Script:
+    """Turn, word and chapter times on the episode clock. With `speed` > 1 the MP3 was sped
+    up after joining, so every time is divided by it."""
     timed = script.model_copy(deep=True)
     offset = 0.0
     for chunk in chunks:
@@ -107,6 +112,11 @@ def build_timeline(script: Script, chunks: list[Chunk]) -> Script:
             turn.words = words[ref] if text.strip() == turn.text.strip() else None
         offset += chunk.duration
     for chapter in timed.chapters:
+        for t in chapter.turns:
+            if t.start_s is not None:
+                t.start_s, t.end_s = round(t.start_s / speed, 3), round(t.end_s / speed, 3)
+            if t.words:
+                t.words = [(round(s / speed, 3), w) for s, w in t.words]
         times = [(t.start_s, t.end_s) for t in chapter.turns if t.start_s is not None]
         if times:
             chapter.start_s = min(s for s, _ in times)
@@ -130,6 +140,7 @@ def synthesize(inputs: list[tuple[str, str]], language: str, seed: int) -> tuple
         output_format=FORMAT,
         language_code=language,
         seed=seed,  # same seed for every chunk of an episode: steadier voices
+        settings={"stability": STABILITY},
         request_options={"max_retries": 3},  # the SDK backs off on 429 and 5xx
     )
     data = r.model_dump()
@@ -173,9 +184,11 @@ def record(
             part.write_bytes(mp3)
             parts.append(part)
             chunks.append(Chunk(turns=refs, response=response, duration=duration(part)))
-        concat_mp3(parts, out)
+        joined = Path(tmp) / "joined.mp3"
+        concat_mp3(parts, joined)
+        change_tempo(joined, out, SPEED)
     chars = sum(len(text) for chunk in inputs for text, _ in chunk)
-    return build_timeline(script, chunks), chars
+    return build_timeline(script, chunks, SPEED), chars
 
 
 def step(ep: Episode, prefs: Preferences, work: Work, session: Session) -> Usage:
