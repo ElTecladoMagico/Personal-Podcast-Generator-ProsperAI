@@ -1,3 +1,6 @@
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 import pytest
 from sqlmodel import Session, select
 
@@ -27,12 +30,14 @@ def test_first_save_onboards_and_schedules(client):
     r = client.put("/me/preferences", json={"preferences": prefs(), "method": "import"})
     assert r.status_code == 200
     me = r.json()
-    assert me["onboarded"] is True and me["next_run_at"] is not None
+    assert me["onboarded"] is True
+    next_at = datetime.fromisoformat(me["next_episode_at"]).astimezone(ZoneInfo("Europe/Madrid"))
+    assert next_at.strftime("%H:%M") == "07:00"  # the listener's time, not the earlier start
     assert me["preferences"]["interests"][0]["topic"] == "IA"
     assert [e.props for e in events("onboarding_completed")] == [{"method": "import"}]
 
     client.put("/me/preferences", json={"preferences": prefs(schedule={"frequency": "off"})})
-    assert client.get("/me").json()["next_run_at"] is None
+    assert client.get("/me").json()["next_episode_at"] is None
     assert len(events("preferences_updated")) == 1 and len(events("onboarding_completed")) == 1
 
 
@@ -113,3 +118,9 @@ def test_import_is_tolerant_with_what_ais_produce(client):
 def test_import_without_json_gives_a_helpful_422(client):
     r = client.post("/me/preferences/import", json={"text": "Sorry, I can't help with that."})
     assert r.status_code == 422 and "JSON" in r.json()["detail"]
+
+
+def test_import_ignores_languages_we_cannot_voice(client):
+    text = '{"interests": [{"topic": "Cine"}], "language": "fr-FR"}'
+    r = client.post("/me/preferences/import", json={"text": text})
+    assert r.status_code == 200 and r.json()["language"] is None  # keeps what the user chose

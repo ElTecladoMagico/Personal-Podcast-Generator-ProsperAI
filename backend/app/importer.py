@@ -9,6 +9,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
+from app.schemas import Language
+
 
 def extract_json(text: str) -> dict:
     """The first balanced JSON object in `text` (braces inside strings are ignored)."""
@@ -64,8 +66,9 @@ class ImportedPreferences(BaseModel):
     ]
     avoid: list[str] = []
     sources_i_trust: list[str] = []
-    language: Annotated[
-        str | None, BeforeValidator(lambda v: str(v).strip().lower()[:2] if v else None)
+    language: Annotated[  # "ES", "es-ES" → "es"; a language we can't voice → keep the user's
+        Language | None,
+        BeforeValidator(lambda v: or_none({"es", "en"})(str(v).strip().lower()[:2] if v else None)),
     ] = None
     tone: Annotated[
         Literal["casual", "serious", "nerdy"] | None,

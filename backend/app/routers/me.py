@@ -1,5 +1,6 @@
+import secrets
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException
@@ -10,7 +11,7 @@ from app.config import settings
 from app.db import DbSession
 from app.importer import ImportedPreferences, extract_json
 from app.models import Event, User
-from app.schedule import compute_next_run
+from app.schedule import GENERATION_LEAD_MIN, compute_next_run
 from app.schemas import Preferences
 from app.voices import BY_ID
 
@@ -25,7 +26,7 @@ class MeOut(BaseModel):
     onboarded: bool
     is_admin: bool
     feed_url: str
-    next_run_at: datetime | None
+    next_episode_at: datetime | None  # when it will be ready (generation starts earlier)
 
 
 def me_out(user: User, claims: dict) -> MeOut:
@@ -37,7 +38,9 @@ def me_out(user: User, claims: dict) -> MeOut:
         onboarded=user.onboarded_at is not None,
         is_admin=(claims.get("metadata") or {}).get("role") == "admin",
         feed_url=f"{settings.public_base_url}/feeds/{user.feed_token}.xml",
-        next_run_at=user.next_run_at,
+        next_episode_at=user.next_run_at + timedelta(minutes=GENERATION_LEAD_MIN)
+        if user.next_run_at
+        else None,
     )
 
 
@@ -83,3 +86,11 @@ def import_preferences(body: ImportIn, user: CurrentUser) -> ImportedPreferences
         raise HTTPException(
             422, "We couldn't find valid JSON with your interests. Did you paste the whole answer?"
         ) from err
+
+
+@router.post("/me/feed-token/rotate")
+def rotate_feed_token(user: CurrentUser, claims: Claims, session: DbSession) -> MeOut:
+    """New private link; apps subscribed with the old one stop getting episodes."""
+    user.feed_token = secrets.token_urlsafe(32)
+    session.commit()
+    return me_out(user, claims)

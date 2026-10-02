@@ -12,7 +12,7 @@ export type Format = Preferences['format']
 
 const MAX_INTERESTS = 12
 
-export function newPreferences(language: string, timezone: string, voices: Voice[]): Preferences {
+export function newPreferences(language: Preferences['language'], timezone: string, voices: Voice[]): Preferences {
   return {
     interests: [],
     avoid: [],
@@ -110,13 +110,10 @@ export const SUGGESTIONS: Record<Lang, Record<string, string[]>> = {
   },
 }
 
-export const LANGUAGES = [
+// Only languages with native voices and a tested script (the backend enforces it too).
+export const LANGUAGES: { code: Preferences['language']; label: string }[] = [
   { code: 'es', label: 'Español' },
   { code: 'en', label: 'English' },
-  { code: 'fr', label: 'Français' },
-  { code: 'de', label: 'Deutsch' },
-  { code: 'it', label: 'Italiano' },
-  { code: 'pt', label: 'Português' },
 ]
 
 // --- API ---------------------------------------------------------------------------

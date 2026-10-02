@@ -1,18 +1,24 @@
+import threading
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app import jobs
 from app.config import settings
-from app.routers import audio, episodes, events, me, voices
+from app.routers import audio, episodes, events, feeds, me, voices
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    stop = threading.Event()
     if settings.scheduler_enabled:  # off in tests
         jobs.recover_interrupted()
+        threading.Thread(target=jobs.schedule_forever, args=(stop,), daemon=True).start()
     yield
+    stop.set()
     jobs.executor.shutdown(wait=False, cancel_futures=True)  # unfinished ones resume on restart
 
 
@@ -28,6 +34,8 @@ app.include_router(audio.router)
 app.include_router(episodes.router)
 app.include_router(voices.router)
 app.include_router(events.router)
+app.include_router(feeds.router)
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 
 
 @app.get("/health")

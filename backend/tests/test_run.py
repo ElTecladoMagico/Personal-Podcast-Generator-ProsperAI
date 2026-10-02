@@ -134,13 +134,15 @@ def test_a_failing_stage_marks_failed_and_retry_resumes_there():
 def test_effective_minutes_are_capped_by_settings(monkeypatch):
     from app.schemas import Preferences
 
-    prefs = Preferences.model_validate(PREFS | {"duration_min": 20})
+    prefs = Preferences.model_validate(PREFS | {"duration_min": 10})
     from app.pipeline import state
 
     monkeypatch.setattr(state.settings, "episode_max_minutes", 2)
     assert state.effective_minutes(prefs) == 2
     monkeypatch.setattr(state.settings, "episode_max_minutes", 10)
     assert state.effective_minutes(prefs) == 10
+    monkeypatch.setattr(state.settings, "episode_max_minutes", 5)
+    assert state.effective_minutes(prefs) == 5
 
 
 def test_news_window_starts_at_last_episode_but_stays_between_one_day_and_the_default():

@@ -58,21 +58,20 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/audio/{episode_id}.mp3": {
+    "/me/feed-token/rotate": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get Audio
-         * @description MP3 for <audio> and podcast apps, which cannot send a JWT: the owner's feed token in
-         *     `?k=` is the credential (revocable). FileResponse answers Range requests with 206.
-         */
-        get: operations["get_audio_audio__episode_id__mp3_get"];
+        get?: never;
         put?: never;
-        post?: never;
+        /**
+         * Rotate Feed Token
+         * @description New private link; apps subscribed with the old one stop getting episodes.
+         */
+        post: operations["rotate_feed_token_me_feed_token_rotate_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -235,6 +234,10 @@ export interface components {
             };
             /** Audio Url */
             audio_url: string | null;
+            /** Votes */
+            votes: {
+                [key: string]: "up" | "down";
+            };
         };
         /** EpisodeSummary */
         EpisodeSummary: {
@@ -345,7 +348,7 @@ export interface components {
              */
             sources_i_trust: string[];
             /** Language */
-            language?: string | null;
+            language?: ("es" | "en") | null;
             /** Tone */
             tone?: ("casual" | "serious" | "nerdy") | null;
             /** Depth */
@@ -381,8 +384,8 @@ export interface components {
             is_admin: boolean;
             /** Feed Url */
             feed_url: string;
-            /** Next Run At */
-            next_run_at: string | null;
+            /** Next Episode At */
+            next_episode_at: string | null;
         };
         /** Preferences */
         Preferences: {
@@ -401,8 +404,9 @@ export interface components {
             /**
              * Language
              * @default en
+             * @enum {string}
              */
-            language: string;
+            language: "es" | "en";
             /**
              * Tone
              * @default casual
@@ -426,7 +430,7 @@ export interface components {
              * @default 10
              * @enum {integer}
              */
-            duration_min: 5 | 10 | 20;
+            duration_min: 5 | 10;
             /** Hosts */
             hosts: components["schemas"]["Host"][];
             /**
@@ -647,15 +651,11 @@ export interface operations {
             };
         };
     };
-    get_audio_audio__episode_id__mp3_get: {
+    rotate_feed_token_me_feed_token_rotate_post: {
         parameters: {
-            query: {
-                k: string;
-            };
+            query?: never;
             header?: never;
-            path: {
-                episode_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -665,15 +665,8 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["MeOut"];
                 };
             };
         };

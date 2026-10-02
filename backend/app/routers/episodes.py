@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import UTC, datetime, timedelta
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -12,12 +13,15 @@ from app.auth import CurrentUser
 from app.config import settings
 from app.db import DbSession
 from app.jobs import run_in_pool
-from app.models import Episode, User
+from app.models import Episode, Event, User
 from app.pipeline.run import new_episode
 from app.pipeline.state import Progress, Work
 from app.schemas import Script
+from app.storage import audio_url
 
 router = APIRouter(prefix="/episodes")
+
+Vote = Literal["up", "down"]
 
 
 class EpisodeSummary(BaseModel):
@@ -58,6 +62,7 @@ class EpisodeDetail(EpisodeSummary):
     script: Script | None  # with timings, once ready
     sources: dict[str, Source]  # article id → where it came from (no article text)
     audio_url: str | None
+    votes: dict[str, Vote]  # story id → the listener's last 👍/👎
 
 
 def topics(work: Work, ep: Episode) -> list[str]:
@@ -74,7 +79,19 @@ def summary(ep: Episode) -> EpisodeSummary:
     return EpisodeSummary(**fields, topics=topics(Work.model_validate(ep.work), ep))
 
 
-def detail(ep: Episode, owner: User) -> EpisodeDetail:
+def votes(session: Session, ep: Episode) -> dict[str, Vote]:
+    events = session.exec(
+        select(Event).where(Event.episode_id == ep.id, Event.type == "feedback").order_by(Event.ts)
+    ).all()
+    # props come from the client: keep only well-formed votes
+    return {
+        e.props["story_id"]: e.props["value"]
+        for e in events
+        if isinstance(e.props.get("story_id"), str) and e.props.get("value") in ("up", "down")
+    }
+
+
+def detail(session: Session, ep: Episode, owner: User) -> EpisodeDetail:
     work = Work.model_validate(ep.work)
     check = work.checker_report
     ready = ep.status == "ready"
@@ -94,10 +111,11 @@ def detail(ep: Episode, owner: User) -> EpisodeDetail:
         script=Script.model_validate(ep.script) if ready and ep.script else None,
         sources={a.id: Source(**a.model_dump()) for a in work.articles} if ready else {},
         audio_url=(
-            f"{settings.public_base_url}/audio/{ep.id}.mp3?k={owner.feed_token}"
+            audio_url(ep.id, owner.feed_token)
             if ready and ep.audio_path and not ep.audio_expired
             else None
         ),
+        votes=votes(session, ep),
     )
 
 
@@ -129,7 +147,7 @@ def generate_now(user: CurrentUser, session: DbSession) -> EpisodeDetail:
     except IntegrityError:  # the unique partial index: one episode in production per user
         raise HTTPException(409, "An episode is already being produced") from None
     run_in_pool(ep.id)
-    return detail(ep, user)
+    return detail(session, ep, user)
 
 
 @router.get("")
@@ -142,7 +160,7 @@ def list_episodes(user: CurrentUser, session: DbSession) -> list[EpisodeSummary]
 
 @router.get("/{episode_id}")
 def get_episode(episode_id: uuid.UUID, user: CurrentUser, session: DbSession) -> EpisodeDetail:
-    return detail(own_episode(session, user, episode_id), user)
+    return detail(session, own_episode(session, user, episode_id), user)
 
 
 @router.post("/{episode_id}/retry")
@@ -156,4 +174,4 @@ def retry(episode_id: uuid.UUID, user: CurrentUser, session: DbSession) -> Episo
     except IntegrityError:
         raise HTTPException(409, "An episode is already being produced") from None
     run_in_pool(ep.id)
-    return detail(ep, user)
+    return detail(session, ep, user)

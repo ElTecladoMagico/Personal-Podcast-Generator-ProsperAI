@@ -32,7 +32,7 @@ export function SoundStep({ prefs, onChange, voices }: StepProps) {
   const setFormat = (f: Format) =>
     onChange({ ...prefs, format: f, hosts: hostsForFormat(f, prefs.hosts, voices, prefs.language ?? 'en') })
   // Untouched default hosts follow the language (native voices); hand-picked ones stay.
-  const setLanguage = (language: string) => {
+  const setLanguage = (language: Preferences['language']) => {
     const same = (a: Preferences['hosts'], b: Preferences['hosts']) => a.map((h) => h.voice_id).join() === b.map((h) => h.voice_id).join()
     const wasDefault = same(prefs.hosts, hostsForFormat(prefs.format ?? 'duo', defaultHosts(voices, prefs.language ?? 'en'), voices, prefs.language ?? 'en'))
     const hosts = wasDefault ? hostsForFormat(prefs.format ?? 'duo', defaultHosts(voices, language), voices, language) : prefs.hosts
@@ -40,13 +40,8 @@ export function SoundStep({ prefs, onChange, voices }: StepProps) {
   }
   return (
     <div className="space-y-8">
-      <div className="space-y-2">
-        <Label htmlFor="language">{t('onb.language')}</Label>
-        <select id="language" value={prefs.language} onChange={(e) => setLanguage(e.target.value)}
-          className="h-10 w-full rounded-md border bg-background px-3 sm:w-64">
-          {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
-        </select>
-      </div>
+      <Choice label={t('onb.language')} value={prefs.language ?? 'en'} onChange={setLanguage}
+        options={LANGUAGES.map((l) => ({ value: l.code, label: l.label }))} />
       <div className="space-y-2">
         <Label>{t('onb.format')}</Label>
         <div className="grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label={t('onb.format')}>
@@ -69,7 +64,7 @@ export function SoundStep({ prefs, onChange, voices }: StepProps) {
       <Choice label={t('onb.depth')} value={prefs.depth ?? 'analysis'} onChange={(depth) => onChange({ ...prefs, depth })}
         options={(['headlines', 'analysis'] as const).map((v) => ({ value: v, label: t(`depth.${v}`) }))} />
       <Choice label={t('onb.duration')} value={prefs.duration_min ?? 10} onChange={(duration_min) => onChange({ ...prefs, duration_min })}
-        options={([5, 10, 20] as const).map((v) => ({ value: v, label: `${v} min` }))} />
+        options={([5, 10] as const).map((v) => ({ value: v, label: `${v} min` }))} />
     </div>
   )
 }

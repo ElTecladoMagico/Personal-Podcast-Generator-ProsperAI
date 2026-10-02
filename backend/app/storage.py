@@ -21,3 +21,8 @@ def new_audio_file(user_id: uuid.UUID, episode_id: uuid.UUID) -> tuple[str, Path
     path = audio_file(relpath)
     path.parent.mkdir(parents=True, exist_ok=True)
     return relpath, path
+
+
+def audio_url(episode_id: uuid.UUID, feed_token: str) -> str:
+    """Public MP3 link: the owner's feed token is the credential (see routers/audio.py)."""
+    return f"{settings.public_base_url}/audio/{episode_id}.mp3?k={feed_token}"
