@@ -6,17 +6,16 @@ from app.models import Episode, User
 
 
 def test_recovery_resubmits_only_unfinished_episodes():
+    eps = {}
     with Session(engine) as s:
-        user = User(clerk_id="user_jobs")
-        s.add(user)
-        s.flush()
-        eps = {
-            status: Episode(
+        for status in ["queued", "writing", "recording", "ready", "failed"]:
+            user = User(clerk_id=f"user_jobs_{status}")  # one active episode per user at most
+            s.add(user)
+            s.flush()
+            eps[status] = Episode(
                 user_id=user.id, trigger="manual", language="en", prefs_snapshot={}, status=status
             )
-            for status in ["queued", "writing", "recording", "ready", "failed"]
-        }
-        s.add_all(eps.values())
+            s.add(eps[status])
         s.commit()
         expected = {eps["queued"].id, eps["writing"].id, eps["recording"].id}
 
