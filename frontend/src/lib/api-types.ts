@@ -21,6 +21,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/audio/{episode_id}.mp3": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Audio
+         * @description MP3 for <audio> and podcast apps, which cannot send a JWT: the owner's feed token in
+         *     `?k=` is the credential (revocable). FileResponse answers Range requests with 206.
+         */
+        get: operations["get_audio_audio__episode_id__mp3_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/episodes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Episodes */
+        get: operations["list_episodes_episodes_get"];
+        put?: never;
+        /** Generate Now */
+        post: operations["generate_now_episodes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/episodes/{episode_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Episode */
+        get: operations["get_episode_episodes__episode_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/episodes/{episode_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry */
+        post: operations["retry_episodes__episode_id__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -42,6 +115,93 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** EpisodeDetail */
+        EpisodeDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string | null;
+            /** Summary */
+            summary: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Duration S */
+            duration_s: number | null;
+            /** Topics */
+            topics: string[];
+            /** Failed Stage */
+            failed_stage: string | null;
+            /** Error */
+            error: string | null;
+            progress: components["schemas"]["GenerationProgress"];
+            /** Hosts */
+            hosts: string[];
+            /** Script */
+            script: {
+                [key: string]: unknown;
+            } | null;
+            /** Sources */
+            sources: {
+                [key: string]: components["schemas"]["Source"];
+            };
+            /** Audio Url */
+            audio_url: string | null;
+        };
+        /** EpisodeSummary */
+        EpisodeSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string | null;
+            /** Summary */
+            summary: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Duration S */
+            duration_s: number | null;
+            /** Topics */
+            topics: string[];
+        };
+        /**
+         * GenerationProgress
+         * @description Real numbers from each finished stage, so the UI can show the newsroom at work.
+         */
+        GenerationProgress: {
+            /** Candidates */
+            candidates: number;
+            /** Outlets */
+            outlets: number;
+            /** Stories */
+            stories: string[];
+            /** Articles */
+            articles: number;
+            /** Issues Found */
+            issues_found: number | null;
+            /** Issues Fixed */
+            issues_fixed: number | null;
+            recording: components["schemas"]["Progress"] | null;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
         /** MeOut */
         MeOut: {
             /**
@@ -65,6 +225,37 @@ export interface components {
             feed_url: string;
             /** Next Run At */
             next_run_at: string | null;
+        };
+        /** Progress */
+        Progress: {
+            /** Done */
+            done: number;
+            /** Total */
+            total: number;
+        };
+        /** Source */
+        Source: {
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+            /** Source */
+            source: string;
+            /** Image Url */
+            image_url: string | null;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
     };
     responses: never;
@@ -91,6 +282,139 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeOut"];
+                };
+            };
+        };
+    };
+    get_audio_audio__episode_id__mp3_get: {
+        parameters: {
+            query: {
+                k: string;
+            };
+            header?: never;
+            path: {
+                episode_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_episodes_episodes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EpisodeSummary"][];
+                };
+            };
+        };
+    };
+    generate_now_episodes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EpisodeDetail"];
+                };
+            };
+        };
+    };
+    get_episode_episodes__episode_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                episode_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EpisodeDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_episodes__episode_id__retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                episode_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EpisodeDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

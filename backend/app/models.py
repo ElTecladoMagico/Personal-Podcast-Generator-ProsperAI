@@ -4,7 +4,7 @@ import secrets
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import BigInteger, DateTime, Index
+from sqlalchemy import BigInteger, DateTime, Index, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
 
@@ -32,6 +32,16 @@ class User(SQLModel, table=True):
 
 class Episode(SQLModel, table=True):
     __tablename__ = "episodes"
+    # At most one episode in production per user: the database enforces it, even if two
+    # "Generate now" clicks race.
+    __table_args__ = (
+        Index(
+            "ix_episodes_one_active_per_user",
+            "user_id",
+            unique=True,
+            postgresql_where=text("status NOT IN ('ready', 'failed')"),
+        ),
+    )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="users.id", index=True)

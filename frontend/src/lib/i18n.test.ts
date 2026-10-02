@@ -18,3 +18,11 @@ describe('messages', () => {
     expect(Object.keys(messages.es).sort()).toEqual(Object.keys(messages.en).sort())
   })
 })
+
+describe('format', () => {
+  it('fills placeholders and leaves unknown ones visible', async () => {
+    const { format } = await import('./i18n')
+    expect(format('Part {done} of {total}', { done: 2, total: 5 })).toBe('Part 2 of 5')
+    expect(format('{x} left', {})).toBe('{x} left')
+  })
+})
