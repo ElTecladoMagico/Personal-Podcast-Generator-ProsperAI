@@ -7,11 +7,19 @@ from app.db import engine
 from app.models import Episode, User
 
 NOW = datetime(2026, 10, 2, 4, 45, tzinfo=UTC)  # 06:45 in Madrid, just past the 06:40 start
-PREFS = {"interests": [{"topic": "AI"}], "hosts": [{"name": "Sara", "voice_id": "v1"}]}
+PREFS = {
+    "interests": [{"topic": "AI"}],
+    "format": "solo",
+    "hosts": [{"name": "Sara", "voice_id": "v1"}],
+}
 
 
 def user(name: str, **fields) -> User:
-    defaults = {"preferences": PREFS, "onboarded_at": NOW, "next_run_at": NOW - timedelta(minutes=5)}
+    defaults = {
+        "preferences": PREFS,
+        "onboarded_at": NOW,
+        "next_run_at": NOW - timedelta(minutes=5),
+    }
     with Session(engine) as s:
         u = User(clerk_id=name, **(defaults | fields))
         s.add(u)
@@ -34,7 +42,11 @@ def test_due_user_gets_one_scheduled_episode_and_the_next_slot():
 def test_user_with_an_episode_in_progress_is_skipped_but_still_advances():
     u = user("busy")
     with Session(engine) as s:
-        s.add(Episode(user_id=u.id, trigger="manual", language="en", prefs_snapshot={}, status="writing"))
+        s.add(
+            Episode(
+                user_id=u.id, trigger="manual", language="en", prefs_snapshot={}, status="writing"
+            )
+        )
         s.commit()
     assert jobs.enqueue_due(NOW, submit=lambda _: None) == []
     with Session(engine) as s:
@@ -56,8 +68,14 @@ def test_audio_older_than_30_days_is_deleted_but_the_episode_stays(tmp_path, mon
     files = {}
     with Session(engine) as s:
         for name, age in [("old", 31), ("recent", 29)]:
-            ep = Episode(user_id=u.id, trigger="manual", language="en", prefs_snapshot={},
-                         status="ready", finished_at=NOW - timedelta(days=age))
+            ep = Episode(
+                user_id=u.id,
+                trigger="manual",
+                language="en",
+                prefs_snapshot={},
+                status="ready",
+                finished_at=NOW - timedelta(days=age),
+            )
             relpath, path = storage.new_audio_file(u.id, ep.id)
             path.write_bytes(b"mp3")
             ep.audio_path, files[name] = relpath, (ep.id, path)

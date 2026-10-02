@@ -1,3 +1,4 @@
+import threading
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -10,9 +11,12 @@ from app.routers import audio, episodes, events, me, voices
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    stop = threading.Event()
     if settings.scheduler_enabled:  # off in tests
         jobs.recover_interrupted()
+        threading.Thread(target=jobs.schedule_forever, args=(stop,), daemon=True).start()
     yield
+    stop.set()
     jobs.executor.shutdown(wait=False, cancel_futures=True)  # unfinished ones resume on restart
 
 
