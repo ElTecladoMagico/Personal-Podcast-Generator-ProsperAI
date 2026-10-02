@@ -43,6 +43,7 @@ class GenerationProgress(BaseModel):
 
 
 class Source(BaseModel):
+    story_id: str
     title: str
     url: str
     source: str

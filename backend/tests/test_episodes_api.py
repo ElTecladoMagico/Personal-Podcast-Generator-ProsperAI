@@ -139,7 +139,13 @@ def test_ready_episode_has_signed_audio_and_sources(client, onboarded, submitted
         token = s.get(User, onboarded).feed_token
     assert detail["audio_url"].endswith(f"/audio/{ep['id']}.mp3?k={token}")
     assert detail["sources"] == {
-        "a1": {"title": "A", "url": "https://x.test/a", "source": "x.test", "image_url": None}
+        "a1": {
+            "story_id": "s1",
+            "title": "A",
+            "url": "https://x.test/a",
+            "source": "x.test",
+            "image_url": None,
+        }
     }
     assert detail["script"]["title"] == "T" and "secret" not in str(detail)
 

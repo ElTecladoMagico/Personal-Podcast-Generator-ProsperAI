@@ -487,6 +487,8 @@ export interface components {
         };
         /** Source */
         Source: {
+            /** Story Id */
+            story_id: string;
             /** Title */
             title: string;
             /** Url */
