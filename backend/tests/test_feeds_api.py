@@ -71,6 +71,7 @@ def test_feed_lists_only_the_owners_playable_episodes(client, feed):
     channel = ET.fromstring(r.content).find("channel")
     assert channel.findtext("title") == "El podcast de Ana"
     assert channel.findtext("language") == "es"
+    assert channel.findtext("link") == "https://podcast.scuda.es"  # the app, not the API
     assert channel.findtext("itunes:block", namespaces=NS) == "Yes"
     assert channel.find("itunes:image", NS).get("href").endswith("/static/cover.png")
 
@@ -102,7 +103,15 @@ def test_feed_download_counts_once_per_listen(client, feed):
     assert downloads() == 2
     client.get(url, params={"k": token, "src": "rss"}, headers={"Range": "bytes=100-"})
     client.get(url, params={"k": token})  # the web player
+    client.head(url, params={"k": token, "src": "rss"})  # an app checking the file
     assert downloads() == 2
+
+
+def test_podcast_apps_can_check_feed_and_audio_with_head(client, feed):
+    token, ep_id = feed
+    assert client.head(f"/feeds/{token}.xml").status_code == 200
+    audio = client.head(f"/audio/{ep_id}.mp3", params={"k": token, "src": "rss"})
+    assert audio.status_code == 200 and audio.headers["content-length"] == "1234"
 
 
 def test_rotating_the_token_kills_the_old_feed(client, feed):

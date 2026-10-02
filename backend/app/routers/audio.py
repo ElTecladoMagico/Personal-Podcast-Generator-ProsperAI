@@ -1,7 +1,7 @@
 import secrets
 import uuid
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, Request
 from fastapi.responses import FileResponse
 
 from app.db import DbSession
@@ -11,10 +11,12 @@ from app.storage import audio_file
 router = APIRouter()
 
 
-@router.get("/audio/{episode_id}.mp3", response_class=FileResponse)
+# Podcast apps check the file with HEAD before downloading it.
+@router.api_route("/audio/{episode_id}.mp3", methods=["GET", "HEAD"], response_class=FileResponse)
 def get_audio(
     episode_id: uuid.UUID,
     k: str,
+    request: Request,
     session: DbSession,
     src: str | None = None,
     byte_range: str | None = Header(None, alias="range"),
@@ -31,7 +33,11 @@ def get_audio(
     if not path.is_file():
         raise HTTPException(404, "Episode not found")
     # A podcast app fetching from the start is one listen; its later Range chunks are not.
-    if src == "rss" and (byte_range is None or byte_range.startswith("bytes=0-")):
+    if (
+        request.method == "GET"
+        and src == "rss"
+        and (byte_range is None or byte_range.startswith("bytes=0-"))
+    ):
         session.add(Event(user_id=owner.id, type="feed_download", episode_id=ep.id))
         session.commit()
     return FileResponse(path, media_type="audio/mpeg")

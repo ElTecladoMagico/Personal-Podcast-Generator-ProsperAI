@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     clerk_authorized_parties: CommaList = []
     cors_origins: CommaList = []
     public_base_url: str = "http://localhost:8000"
+    app_url: str = "https://podcast.scuda.es"  # the web app, the feed's "website"
     audio_dir: str = "./data/audio"
     scheduler_enabled: bool = True
     max_concurrent_generations: int = 3

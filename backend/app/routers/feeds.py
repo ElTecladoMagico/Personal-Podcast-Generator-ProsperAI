@@ -51,7 +51,7 @@ def build_feed(user: User, episodes: list[Episode]) -> bytes:
     rss = ET.Element("rss", version="2.0")
     channel = sub(rss, "channel")
     sub(channel, "title", feed_title(user, language))
-    sub(channel, "link", settings.public_base_url)
+    sub(channel, "link", settings.app_url)
     sub(channel, "description", DESCRIPTION.get(language, DESCRIPTION["en"]))
     sub(channel, "language", language)
     sub(channel, "itunes:author", "Personal Podcast Generator")
@@ -74,7 +74,7 @@ def build_feed(user: User, episodes: list[Episode]) -> bytes:
     return ET.tostring(rss, encoding="utf-8", xml_declaration=True)
 
 
-@router.get("/feeds/{feed_token}.xml")
+@router.api_route("/feeds/{feed_token}.xml", methods=["GET", "HEAD"])  # apps check with HEAD
 def get_feed(feed_token: str, session: DbSession) -> Response:
     user = session.exec(select(User).where(User.feed_token == feed_token)).first()
     if not user:
