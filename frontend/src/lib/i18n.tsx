@@ -30,7 +30,7 @@ const en = {
   'landing.demo.ch2': 'Europe’s AI rules start to bite',
   'landing.demo.ch3': 'The new chip everyone is waiting for',
   'landing.demo.ch4': 'Last night’s match, in two minutes',
-  'landing.demo.hosts': 'with Sarah & George',
+  'landing.demo.hosts': 'with Sara & Martín',
   'landing.footer': 'Built for the ProsperAI challenge.',
   'page.home': 'Your episodes',
   'page.onboarding': 'Set up your show',
@@ -42,9 +42,37 @@ const en = {
   'page.backHome': 'Back home',
   'error.generic': 'Something went wrong',
   'home.hello': 'Hello',
+  'home.morning': 'Good morning',
+  'home.afternoon': 'Good afternoon',
+  'home.evening': 'Good evening',
+  'home.generate': 'Generate now',
+  'home.generating': 'On air…',
+  'home.emptyTitle': 'Your first episode is one click away',
+  'home.emptyBody': 'The newsroom reads today’s news about your interests, checks the facts and records it for you. It takes about two minutes.',
+  'home.listen': 'Listen',
+  'home.previous': 'Previous episodes',
+  'home.errorBusy': 'An episode is already being produced. Hang on, it’s almost ready.',
+  'home.errorLimit': 'You reached today’s limit of episodes. Your next one arrives on schedule.',
+  'home.min': 'min',
+  'stage.queued': 'In the queue',
+  'stage.fetching': 'Gathering the news',
+  'stage.editing': 'Choosing the stories',
+  'stage.researching': 'Reading the articles',
+  'stage.writing': 'Writing the script',
+  'stage.verifying': 'Checking the facts',
+  'stage.recording': 'Recording',
+  'stage.detail.fetching': '{candidates} stories from {outlets} outlets',
+  'stage.detail.editing': 'The editor picked {n} stories',
+  'stage.detail.researching': '{n} articles read in full',
+  'stage.detail.verifyingOk': 'Every claim matches its sources',
+  'stage.detail.verifyingFixed': 'Claims flagged: {found} · fixed: {fixed}',
+  'stage.detail.recording': 'Part {done} of {total}',
+  'stage.failed': 'Something went wrong while {stage}.',
+  'stage.retry': 'Try again',
+  'stage.ready': 'Your episode is ready',
 }
 
-type Key = keyof typeof en
+export type Key = keyof typeof en
 
 const es: Record<Key, string> = {
   'nav.home': 'Inicio',
@@ -75,7 +103,7 @@ const es: Record<Key, string> = {
   'landing.demo.ch2': 'Las reglas europeas de IA empiezan a notarse',
   'landing.demo.ch3': 'El chip que todos esperan',
   'landing.demo.ch4': 'El partido de anoche, en dos minutos',
-  'landing.demo.hosts': 'con Sarah y George',
+  'landing.demo.hosts': 'con Sara y Martín',
   'landing.footer': 'Hecho para el reto de ProsperAI.',
   'page.home': 'Tus episodios',
   'page.onboarding': 'Configura tu programa',
@@ -87,11 +115,44 @@ const es: Record<Key, string> = {
   'page.backHome': 'Volver al inicio',
   'error.generic': 'Algo ha fallado',
   'home.hello': 'Hola',
+  'home.morning': 'Buenos días',
+  'home.afternoon': 'Buenas tardes',
+  'home.evening': 'Buenas noches',
+  'home.generate': 'Generar ahora',
+  'home.generating': 'En antena…',
+  'home.emptyTitle': 'Tu primer episodio está a un clic',
+  'home.emptyBody': 'La redacción lee las noticias de hoy sobre tus temas, comprueba los hechos y te lo graba. Tarda unos dos minutos.',
+  'home.listen': 'Escuchar',
+  'home.previous': 'Episodios anteriores',
+  'home.errorBusy': 'Ya hay un episodio en producción. Espera un poco, está casi listo.',
+  'home.errorLimit': 'Has llegado al límite de episodios de hoy. El siguiente llegará a su hora.',
+  'home.min': 'min',
+  'stage.queued': 'En cola',
+  'stage.fetching': 'Reuniendo noticias',
+  'stage.editing': 'Eligiendo las historias',
+  'stage.researching': 'Leyendo los artículos',
+  'stage.writing': 'Escribiendo el guion',
+  'stage.verifying': 'Comprobando los hechos',
+  'stage.recording': 'Grabando',
+  'stage.detail.fetching': '{candidates} noticias de {outlets} medios',
+  'stage.detail.editing': 'El editor eligió {n} historias',
+  'stage.detail.researching': '{n} artículos leídos enteros',
+  'stage.detail.verifyingOk': 'Todas las afirmaciones cuadran con sus fuentes',
+  'stage.detail.verifyingFixed': 'Afirmaciones revisadas: {found} · corregidas: {fixed}',
+  'stage.detail.recording': 'Parte {done} de {total}',
+  'stage.failed': 'Algo ha fallado en la etapa «{stage}».',
+  'stage.retry': 'Reintentar',
+  'stage.ready': 'Tu episodio está listo',
 }
 
 export const messages = { en, es }
 export type Lang = keyof typeof messages
 const STORAGE_KEY = 'ui-lang'
+
+/** "Part {done} of {total}" + {done: 2, total: 5} → "Part 2 of 5". */
+export function format(template: string, vars: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name] ?? `{${name}}`))
+}
 
 export function detectLang(stored: string | null, browser: string): Lang {
   if (stored === 'en' || stored === 'es') return stored
