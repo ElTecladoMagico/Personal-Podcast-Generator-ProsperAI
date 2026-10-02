@@ -85,8 +85,8 @@ export function InterestsStep({ prefs, onChange, onImported }: {
                     aria-label={format(t('onb.weight'), { topic: interest.topic, n: w })}
                     aria-pressed={(interest.weight ?? 3) === w}
                     onClick={() => setInterests(interests.map((x) => (x === interest ? { ...x, weight: w } : x)))}
-                    className="p-0.5">
-                    <span className={cn('block size-1.5 rounded-full', w <= (interest.weight ?? 3) ? 'bg-primary' : 'bg-muted-foreground/30')} />
+                    className="p-0.5 pointer-coarse:p-2">{/* 24 px to tap on touch screens */}
+                    <span className={cn('block size-1.5 rounded-full pointer-coarse:size-2', w <= (interest.weight ?? 3) ? 'bg-primary' : 'bg-muted-foreground/30')} />
                   </button>
                 ))}
               </span>
