@@ -1,12 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { type Me, useApi } from './api'
 
-/** Subscribe links: each app opens with the private feed already filled in. */
+/** Subscribe links that open the app with the feed filled in (Apple Podcasts: Mac and iPhone;
+ * Pocket Casts: phone). Any other
+ * app takes the copied URL ("Add by URL"). */
 export function podcastApps(feedUrl: string) {
   const bare = feedUrl.replace(/^https?:\/\//, '')
   return [
     { name: 'Apple Podcasts', href: `podcast://${bare}` },
-    { name: 'Overcast', href: `overcast://x-callback-url/add?url=${encodeURIComponent(feedUrl)}` },
     { name: 'Pocket Casts', href: `pktc://subscribe/${bare}` },
   ]
 }
