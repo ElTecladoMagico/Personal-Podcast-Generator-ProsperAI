@@ -21,7 +21,7 @@ class MeOut(BaseModel):
     id: uuid.UUID
     email: str | None
     display_name: str | None
-    preferences: dict  # Preferences once onboarded, {} before
+    preferences: Preferences | None  # None until the onboarding is done
     onboarded: bool
     is_admin: bool
     feed_url: str
@@ -33,7 +33,7 @@ def me_out(user: User, claims: dict) -> MeOut:
         id=user.id,
         email=user.email,
         display_name=user.display_name,
-        preferences=user.preferences,
+        preferences=Preferences.model_validate(user.preferences) if user.onboarded_at else None,
         onboarded=user.onboarded_at is not None,
         is_admin=(claims.get("metadata") or {}).get("role") == "admin",
         feed_url=f"{settings.public_base_url}/feeds/{user.feed_token}.xml",
