@@ -24,7 +24,7 @@ Esta carpeta es la **fuente de verdad para ejecutar el proyecto**. Si se pierde 
 | 4 | `spike/google-news` | [04](04-spike-google-news.md) · [resultados](04-resultados.md) | 1 | ✅ |
 | 5 | `feat/news-sources` | [05](05-news-sources.md) | 4 | ✅ |
 | 6 | `feat/episode-pipeline` | [06](06-episode-pipeline.md) · [resultados](06-resultados.md) | 5 | ✅ |
-| 7 | `feat/generation-progress` | [07](07-generation-progress.md) | 2, 6 | ⏳ |
+| 7 | `feat/generation-progress` | [07](07-generation-progress.md) | 2, 6 | ✅ |
 | 8 | `feat/onboarding` | [08](08-onboarding.md) | 2, 6 | ⏳ |
 | 9 | `feat/player` | [09](09-player.md) | 7 | ⏳ |
 | 10 | `feat/scheduler-rss` | [10](10-scheduler-rss.md) | 6, 8 | ⏳ |
@@ -46,6 +46,7 @@ Desplegamos al final de la rama 3 y **después de cada merge** a partir de ahí 
 | ✅ Rama 3 | DNS: `podcast.scuda.es` CNAME → `scuda-podcast.netlify.app` (sin `https://`; el A de `api.podcast.scuda.es` ya está) | HTTPS en ambos |
 | Rama 3 | Clerk producción: añadir los registros DNS que pida Clerk para `scuda.es` (o seguir en modo desarrollo; ver plan 03) | Login sin la marca "Development" |
 | Cuando quieras | Clerk → Configure → *Application name*: cambiar "ProsperAI_challenge" por "Personal Podcast" (es lo que se ve en el modal de login) | Login con la marca del producto |
+| Al terminar el proyecto | Borrar el usuario de pruebas `e2e+clerk_test@example.com` de Clerk (dev) y sus filas locales; se mantiene mientras haga falta un episodio `ready` para probar el reproductor | Instancia limpia |
 | Rama 12 | Marcar tu usuario como admin: Clerk → Users → *public metadata* `{"role":"admin"}` | Acceso a `/admin` |
 
 ## Calidad (en cada rama, antes de mergear)

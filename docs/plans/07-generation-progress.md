@@ -52,3 +52,13 @@
 - [ ] No se pueden lanzar dos generaciones a la vez para el mismo usuario, ni más de 5 manuales al día.
 - [ ] La UI refleja cada etapa en ≤ 2 s.
 - [ ] Reintentar desde la UI reanuda en la etapa que falló.
+
+## Notas de implementación (2026-10-02)
+- **"Un episodio en producción por usuario" lo garantiza Postgres** con un índice único parcial (`ix_episodes_one_active_per_user`, `status NOT IN ('ready','failed')`): la API traduce el `IntegrityError` a 409. Ni dos clics simultáneos lo saltan. Un test antiguo que creaba 3 episodios activos del mismo usuario se corrigió (el índice cumplió su función).
+- **`cover_seed` no viaja en la API:** el frontend lo deriva del `id` (FNV-1a), menos contrato.
+- **`progress`** sale del `Work` tipado: candidatos, medios distintos, titulares elegidos, artículos leídos, afirmaciones revisadas/corregidas y `recording {done, total}` (este último ya existía desde la rama 6).
+- **Sin `motion`** todavía: las entradas (titulares que aparecen uno a uno, ✓, pulso de la etapa activa) son CSS (`tw-animate-css`) y respetan `prefers-reduced-motion`. `motion` entrará si el reproductor lo necesita.
+- Los commits de API (crear/listar/detalle/reintentar) van juntos: comparten fichero y modelos de respuesta.
+- **E2E real (local):** login → "Generar ahora" → las 7 etapas con datos reales ("46 noticias de 42 medios", los 2 titulares, "3 artículos leídos", "Afirmaciones revisadas: 2 · corregidas: 1") → **fallo forzado** en `recording` (key de ElevenLabs inválida) → "Reintentar" con la key buena → reanuda en `recording` ("Parte 1 de 4") **sin repetir el editor** → listo, con título, resumen y "Escuchar". Revisado a 1440 y 390 px; Lighthouse móvil: accesibilidad 100, buenas prácticas 100.
+- Pulido tras la revisión visual: título "Algo ha fallado" en episodios fallidos, concordancia de "corregidas", el botón "Escuchar" arriba de la lista al terminar, portada más pequeña en móvil.
+- Informe TDD: [`docs/testing/07-generation-progress.tdd.md`](../testing/07-generation-progress.tdd.md).
