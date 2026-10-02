@@ -11,8 +11,8 @@ from sqlmodel import Session
 
 from app import llm
 from app.models import Episode, User
-from app.pipeline.run import add_cost, effective_minutes, save_work
-from app.schemas import Article, EditorPick, EditorSelection, Preferences, Script
+from app.pipeline.state import Work, effective_minutes
+from app.schemas import Article, Chapter, EditorPick, Preferences, Script, Turn, Usage
 
 PROMPT = (Path(__file__).parent / "prompts" / "writer.md").read_text()
 CHARS_PER_MINUTE = 850  # measured 2026-10-01: eleven_v3 dialogue reads ~855 characters a minute
@@ -80,14 +80,19 @@ def trim_to(draft: WriterScript, max_chars: int) -> WriterScript:
 
 def to_script(draft: WriterScript, article_ids: set[str], hosts: int) -> Script:
     """Sanitize what the model wrote: known sources only, valid speakers, clean text."""
-    data = draft.model_dump()
-    for chapter in data["chapters"]:
-        for t in chapter["turns"]:
-            t["speaker"] = min(max(t["speaker"], 0), hosts - 1)
-            t["source_ids"] = [s for s in t["source_ids"] if s in article_ids]
-            t["text"] = clean_text(t["text"])
-        chapter["turns"] = [t for t in chapter["turns"] if t["text"]]
-    return Script.model_validate(data)
+
+    def turn(t: WriterTurn) -> Turn:
+        return Turn(
+            speaker=min(max(t.speaker, 0), hosts - 1),
+            text=clean_text(t.text),
+            source_ids=[s for s in t.source_ids if s in article_ids],
+        )
+
+    chapters = [
+        Chapter(story_id=c.story_id, title=c.title, turns=[x for x in map(turn, c.turns) if x.text])
+        for c in draft.chapters
+    ]
+    return Script(title=draft.title, summary=draft.summary, chapters=chapters)
 
 
 def writer_input(
@@ -126,7 +131,7 @@ def writer_input(
     }
 
 
-def write_script(payload: dict, article_ids: set[str], hosts: int) -> tuple[Script, dict]:
+def write_script(payload: dict, article_ids: set[str], hosts: int) -> tuple[Script, Usage]:
     draft, usage = llm.parse(
         llm.WRITER_MODEL, PROMPT, json.dumps(payload, ensure_ascii=False), WriterScript
     )
@@ -134,20 +139,16 @@ def write_script(payload: dict, article_ids: set[str], hosts: int) -> tuple[Scri
     return to_script(draft, article_ids, hosts), usage
 
 
-def chosen_picks(ep: Episode) -> list[EditorPick]:
-    """The stories that survived research, in order (backups included when they replaced one)."""
-    selection = EditorSelection.model_validate(ep.work["selection"])
-    by_id = {p.story_id: p for p in selection.picks + selection.backups}
-    return [by_id[s] for s in ep.work["stories"]]
-
-
-def step(ep: Episode, prefs: Preferences, session: Session) -> None:
-    articles = [Article.model_validate(a) for a in ep.work["articles"]]
+def step(ep: Episode, prefs: Preferences, work: Work, session: Session) -> Usage:
+    # The stories that survived research, in order (a backup when it replaced a pick).
+    by_id = {p.story_id: p for p in work.selection.picks + work.selection.backups}
+    picks = [by_id[s] for s in work.stories]
     listener = session.get(User, ep.user_id).display_name
-    payload = writer_input(prefs, chosen_picks(ep), articles, listener, effective_minutes(prefs))
-    script, usage = write_script(payload, {a.id for a in articles}, len(prefs.hosts))
-    save_work(ep, "draft_script", script.model_dump())
-    add_cost(ep, usage)
+    payload = writer_input(prefs, picks, work.articles, listener, effective_minutes(prefs))
+    work.draft_script, usage = write_script(
+        payload, {a.id for a in work.articles}, len(prefs.hosts)
+    )
+    return usage
 
 
 REVISE = """
@@ -160,7 +161,7 @@ other turn word for word, and keep the same chapters and turns in the same order
 
 def revise_script(
     script: Script, issues: list, articles: list[Article], article_ids: set[str], hosts: int
-) -> tuple[Script, dict]:
+) -> tuple[Script, Usage]:
     payload = {
         "script": script.model_dump(include={"title", "summary", "chapters"}),
         "issues": [i.model_dump() for i in issues],

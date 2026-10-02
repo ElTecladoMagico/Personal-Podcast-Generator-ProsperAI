@@ -8,6 +8,7 @@ clock never drifts across chunks (ADR 0008, 0016).
 import base64
 import tempfile
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
@@ -19,13 +20,16 @@ from sqlmodel import Session
 from app.audio import concat_mp3, duration
 from app.config import settings
 from app.models import Episode
-from app.pipeline.run import add_cost, save_work
-from app.schemas import Host, Preferences, Script
-from app.storage import audio_file, audio_relpath
+from app.pipeline.state import Progress, Work, store
+from app.schemas import Host, Preferences, Script, Usage
+from app.storage import new_audio_file
 
 CHUNK_CHARS = 1800  # below the per-request limit, and short enough to retry cheaply
 MODEL = "eleven_v3"
 FORMAT = "mp3_44100_128"  # 192 kbps needs a paid Creator plan
+# Chunks are independent (eleven_v3 has no previous_text), so they are voiced in parallel.
+# Kept low because every running episode does this; the SDK retries if we hit a 429.
+PARALLEL_CHUNKS = 3
 
 TurnRef = tuple[int, int]  # (chapter index, turn index)
 
@@ -141,41 +145,51 @@ def record(
     language: str,
     seed: int,
     out: Path,
+    *,
     synth: Synth = synthesize,
     on_progress: Callable[[int, int], None] = lambda done, total: None,
 ) -> tuple[Script, int]:
-    """Voice every chunk, join them into `out` and return (timed script, characters billed)."""
+    """Voice every chunk, join them into `out` and return (timed script, characters billed).
+    `on_progress` is called from this thread, so it may use the caller's database session."""
     plan = chunk_turns(script)
-    chunks, parts, chars = [], [], 0
+    inputs = [
+        [
+            (t.text, hosts[t.speaker].voice_id)
+            for t in (script.chapters[ci].turns[ti] for ci, ti in refs)
+        ]
+        for refs in plan
+    ]
+    with ThreadPoolExecutor(PARALLEL_CHUNKS) as pool:
+        futures = [pool.submit(synth, chunk, language, seed) for chunk in inputs]
+        for done, future in enumerate(as_completed(futures), start=1):
+            future.result()  # fail fast if a chunk failed
+            on_progress(done, len(plan))
+
+    chunks, parts = [], []
     with tempfile.TemporaryDirectory() as tmp:
-        for i, refs in enumerate(plan):
-            turns = [script.chapters[ci].turns[ti] for ci, ti in refs]
-            inputs = [(t.text, hosts[t.speaker].voice_id) for t in turns]
-            mp3, response = synth(inputs, language, seed)
+        for i, (refs, future) in enumerate(zip(plan, futures, strict=True)):
+            mp3, response = future.result()
             part = Path(tmp) / f"chunk_{i:03}.mp3"
             part.write_bytes(mp3)
             parts.append(part)
             chunks.append(Chunk(turns=refs, response=response, duration=duration(part)))
-            chars += sum(len(text) for text, _ in inputs)
-            on_progress(i + 1, len(plan))
         concat_mp3(parts, out)
+    chars = sum(len(text) for chunk in inputs for text, _ in chunk)
     return build_timeline(script, chunks), chars
 
 
-def step(ep: Episode, prefs: Preferences, session: Session) -> None:
-    script = Script.model_validate(ep.work["final_script"])
-    relpath = audio_relpath(ep.user_id, ep.id)
-    out = audio_file(relpath)
-    out.parent.mkdir(parents=True, exist_ok=True)
+def step(ep: Episode, prefs: Preferences, work: Work, session: Session) -> Usage:
+    relpath, out = new_audio_file(ep.user_id, ep.id)
 
     def progress(done: int, total: int) -> None:  # the UI shows "recording 3/6"
-        save_work(ep, "recording", {"done": done, "total": total})
+        work.recording = Progress(done=done, total=total)
+        store(ep, work)
         session.commit()
 
     timed, chars = record(
-        script, prefs.hosts, prefs.language, ep.id.int % 2**31, out, on_progress=progress
+        work.final_script, prefs.hosts, prefs.language, ep.id.int % 2**31, out, on_progress=progress
     )
     ep.script = timed.model_dump()
     ep.audio_path = relpath
     ep.duration_s = round(duration(out), 2)
-    add_cost(ep, {"tts_chars": chars})
+    return Usage(tts_chars=chars)

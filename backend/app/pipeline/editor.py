@@ -9,8 +9,8 @@ from sqlmodel import Session, select
 
 from app import llm
 from app.models import Episode, Event, Story
-from app.pipeline.run import add_cost, effective_minutes, save_work
-from app.schemas import Candidate, EditorSelection, Preferences
+from app.pipeline.state import Work, effective_minutes
+from app.schemas import Candidate, EditorSelection, Preferences, Usage
 
 PROMPT = (Path(__file__).parent / "prompts" / "editor.md").read_text()
 STORIES_BY_MINUTES = {2: 2, 5: 3, 10: 5, 20: 7}
@@ -80,7 +80,7 @@ def recent_memory(session: Session, user_id: uuid.UUID, days: int = 14) -> list[
 
 def pick_stories(
     prefs: Preferences, candidates: list[Candidate], memory: list[dict], feedback: dict, wanted: int
-) -> tuple[EditorSelection, dict]:
+) -> tuple[EditorSelection, Usage]:
     payload = {
         "language": prefs.language,
         "interests": [
@@ -111,15 +111,13 @@ def pick_stories(
     return selection, usage
 
 
-def step(ep: Episode, prefs: Preferences, session: Session) -> None:
-    candidates = [Candidate.model_validate(c) for c in ep.work["candidates"]]
-    wanted = min(story_count(effective_minutes(prefs)), len(candidates) // 2)
-    selection, usage = pick_stories(
+def step(ep: Episode, prefs: Preferences, work: Work, session: Session) -> Usage:
+    wanted = min(story_count(effective_minutes(prefs)), len(work.candidates) // 2)
+    work.selection, usage = pick_stories(
         prefs,
-        candidates,
+        work.candidates,
         recent_memory(session, ep.user_id),
         feedback_by_interest(session, ep.user_id),
         wanted,
     )
-    save_work(ep, "selection", selection.model_dump())
-    add_cost(ep, usage)
+    return usage

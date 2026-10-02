@@ -124,13 +124,13 @@ Puertos locales: API `8000`, Vite `5173`, Postgres `5433` (para no chocar con ot
 | `error` | text null | mensaje corto |
 | `language` | text | copia de las preferencias en el momento de crear |
 | `prefs_snapshot` | jsonb | `Preferences` usadas (reproducibilidad) |
-| `work` | jsonb | resultados intermedios: `candidates`, `selection`, `articles`, `draft_script`, `checker_report`, `final_script`, `recording` (`{done, total}`) |
+| `work` | jsonb | resultados intermedios, modelo `Work` tipado (`app/pipeline/state.py`): `candidates`, `selection`, `articles`, `stories` (ids que pasaron la documentación), `draft_script`, `checker_report` (`FactCheck`), `final_script`, `recording` (`{done, total}`) |
 | `title`, `summary` | text null | del guion final |
 | `script` | jsonb null | `Script` final con tiempos (§5) |
 | `audio_path` | text null | relativo a `AUDIO_DIR` |
 | `duration_s` | float null | |
 | `audio_expired` | bool default false | tras la limpieza de 30 días |
-| `cost` | jsonb | `{"llm_usd":…, "tts_chars":…, "tokens":{"in":…,"out":…}}` |
+| `cost` | jsonb | `Usage` (`app/schemas.py`): `{"llm_usd":…, "tokens_in":…, "tokens_out":…, "tts_chars":…}`. Cada paso devuelve el suyo y el orquestador los suma |
 | `stage_timings` | jsonb | `{"fetching": 3.2, "editing": 8.1, …}` en segundos |
 | `created_at`, `started_at`, `finished_at` | timestamptz | |
 

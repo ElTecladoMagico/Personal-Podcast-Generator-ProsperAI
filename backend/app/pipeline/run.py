@@ -1,43 +1,37 @@
 """Episode orchestration (ADR 0009): six stages in order, each one resumable.
 
-Every step reads the `work` of earlier stages and writes its own key, then commits. When a
-step raises, the episode is left `failed` with `failed_stage`; a retry starts right there and
-reuses everything before it.
+Each step gets the typed `Work` of earlier stages, fills in its part and returns its `Usage`.
+The runner saves work and cost only when the step succeeds. When a step raises, the episode
+is left `failed` with `failed_stage`; a retry starts right there and reuses what came before.
 """
 
 import logging
 import time
 import uuid
+from collections import defaultdict
 from collections.abc import Callable
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
-from sqlmodel import Session, func, select
+from sqlmodel import Session
 
-from app.config import settings
 from app.db import engine
 from app.models import Episode, Event, Story, User
-from app.schemas import Preferences, Script
-from app.sources import gather_candidates
+from app.pipeline import checker, editor, reporter, research, voice, writer
+from app.pipeline.state import Work, store
+from app.schemas import Preferences, Usage
 
 log = logging.getLogger(__name__)
 
-STAGES = ["fetching", "editing", "researching", "writing", "verifying", "recording"]
-Step = Callable[[Episode, Preferences, Session], None]
-MIN_CANDIDATES = 5
-
-
-def default_steps() -> dict[str, Step]:
-    """The six steps, in one place. Imported here to keep the step modules free of cycles."""
-    from app.pipeline import checker, editor, research, voice, writer
-
-    return {
-        "fetching": fetch_step,
-        "editing": editor.step,
-        "researching": research.step,
-        "writing": writer.step,
-        "verifying": checker.step,
-        "recording": voice.step,
-    }
+Step = Callable[[Episode, Preferences, Work, Session], Usage]
+STEPS: dict[str, Step] = {
+    "fetching": reporter.step,
+    "editing": editor.step,
+    "researching": research.step,
+    "writing": writer.step,
+    "verifying": checker.step,
+    "recording": voice.step,
+}
+STAGES = list(STEPS)
 
 
 def new_episode(session: Session, user: User, trigger: str) -> Episode:
@@ -59,53 +53,11 @@ def new_episode(session: Session, user: User, trigger: str) -> Episode:
     return ep
 
 
-def effective_minutes(prefs: Preferences) -> int:
-    """EPISODE_MAX_MINUTES caps the length to save credits (2 in dev, 10 in prod)."""
-    return min(prefs.duration_min, settings.episode_max_minutes)
-
-
-def save_work(ep: Episode, key: str, value) -> None:
-    ep.work = {**ep.work, key: value}  # reassign: SQLAlchemy only sees new JSONB objects
-
-
-def add_cost(ep: Episode, usage: dict) -> None:
-    cost = {"llm_usd": 0.0, "tts_chars": 0, "tokens": {"in": 0, "out": 0}} | ep.cost
-    ep.cost = {
-        "llm_usd": round(cost["llm_usd"] + usage.get("usd", 0), 6),
-        "tts_chars": cost["tts_chars"] + usage.get("tts_chars", 0),
-        "tokens": {
-            "in": cost["tokens"]["in"] + usage.get("in", 0),
-            "out": cost["tokens"]["out"] + usage.get("out", 0),
-        },
-    }
-
-
-def news_window_start(last_ready: datetime | None, prefs: Preferences, now: datetime) -> datetime:
-    """News since the last episode, but never less than 1 day nor more than the default window."""
-    default = timedelta(days=8 if prefs.schedule.frequency == "weekly" else 2)
-    since = last_ready or now - default
-    return min(max(since, now - default), now - timedelta(days=1))
-
-
-def fetch_step(ep: Episode, prefs: Preferences, session: Session) -> None:
-    """Step 1 · Reporter: candidates from every source (app.sources)."""
-    last_ready = session.exec(
-        select(func.max(Episode.finished_at)).where(
-            Episode.user_id == ep.user_id, Episode.status == "ready"
-        )
-    ).one()
-    since = news_window_start(last_ready, prefs, datetime.now(UTC))
-    candidates = gather_candidates(prefs, since)
-    if len(candidates) < MIN_CANDIDATES:
-        raise RuntimeError("No recent news found about your interests")
-    save_work(ep, "candidates", [c.model_dump(mode="json") for c in candidates])
-
-
-def generate_episode(episode_id: uuid.UUID, steps: dict[str, Step] | None = None) -> None:
-    steps = steps or default_steps()
+def generate_episode(episode_id: uuid.UUID, steps: dict[str, Step] = STEPS) -> None:
     with Session(engine) as session:
         ep = session.get(Episode, episode_id)
         prefs = Preferences.model_validate(ep.prefs_snapshot)
+        work = Work.model_validate(ep.work)
         # Resume where it stopped: the failed stage, or the stage a crash interrupted.
         start = ep.failed_stage or (ep.status if ep.status in STAGES else STAGES[0])
         ep.failed_stage = ep.error = None
@@ -116,16 +68,18 @@ def generate_episode(episode_id: uuid.UUID, steps: dict[str, Step] | None = None
             session.commit()
             t0 = time.perf_counter()
             try:
-                steps[name](ep, prefs, session)
+                usage = steps[name](ep, prefs, work, session)
             except Exception as err:  # any failure: record it, keep earlier work, stop
                 log.exception("episode %s failed at %s", episode_id, name)
                 session.rollback()
                 fail(session, session.get(Episode, episode_id), name, err)
                 return
+            store(ep, work)
+            ep.cost = (Usage.model_validate(ep.cost) + usage).model_dump()
             ep.stage_timings = {**ep.stage_timings, name: round(time.perf_counter() - t0, 1)}
             session.commit()
 
-        finish(session, ep)
+        finish(session, ep, work)
 
 
 def fail(session: Session, ep: Episode, stage: str, err: Exception) -> None:
@@ -143,43 +97,36 @@ def fail(session: Session, ep: Episode, stage: str, err: Exception) -> None:
     session.commit()
 
 
-def finish(session: Session, ep: Episode) -> None:
-    script = Script.model_validate(ep.script)
-    ep.status, ep.title, ep.summary = "ready", script.title, script.summary
+def finish(session: Session, ep: Episode, work: Work) -> None:
+    ep.status, ep.title, ep.summary = "ready", ep.script["title"], ep.script["summary"]
     ep.finished_at = datetime.now(UTC)
 
-    # Memory for the editor (no repeats, follow-ups): one row per story chapter.
-    selection = ep.work.get("selection", {})
-    picks = {p["story_id"]: p for p in selection.get("picks", []) + selection.get("backups", [])}
-    article_urls: dict[str, list[str]] = {}
-    for a in ep.work.get("articles", []):
-        article_urls.setdefault(a["story_id"], []).append(a["url"])
-    candidate_urls = {c["id"]: c["url"] for c in ep.work.get("candidates", [])}
-    for chapter in script.chapters:
-        pick = picks.get(chapter.story_id)
-        if not pick:
-            continue
-        urls = article_urls.get(chapter.story_id) or [
-            candidate_urls[c] for c in pick["candidate_ids"] if c in candidate_urls
-        ]
+    # Memory for the editor (no repeats, follow-ups): one row per story the hosts told.
+    stories = {p.story_id: p for p in work.selection.picks + work.selection.backups}
+    urls = defaultdict(list)
+    for article in work.articles:
+        urls[article.story_id].append(article.url)
+    told = [c.story_id for c in work.final_script.chapters if c.story_id]
+    for story_id in told:
+        pick = stories[story_id]
         session.add(
             Story(
                 user_id=ep.user_id,
                 episode_id=ep.id,
-                title=pick["headline"],
-                summary=pick["why_it_matters"][:400],
-                topic=pick["interest"],
-                urls=urls,
+                title=pick.headline,
+                summary=pick.why_it_matters[:400],
+                topic=pick.interest,
+                urls=urls[story_id],
             )
         )
 
-    report = ep.work.get("checker_report", {})
+    check = work.checker_report
     props = {
         "duration_s": ep.duration_s,
         "cost": ep.cost,
         "stage_timings": ep.stage_timings,
-        "issues_found": report.get("issues_found", 0),
-        "issues_fixed": report.get("issues_fixed", 0),
+        "issues_found": check.issues_found if check else 0,
+        "issues_fixed": check.issues_fixed if check else 0,
     }
     session.add(Event(user_id=ep.user_id, type="episode_ready", episode_id=ep.id, props=props))
     session.commit()

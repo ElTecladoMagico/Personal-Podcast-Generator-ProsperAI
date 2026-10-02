@@ -6,6 +6,7 @@ from openai import OpenAI
 from pydantic import BaseModel
 
 from app.config import settings
+from app.schemas import Usage
 
 EDITOR_MODEL = "gpt-6-luna"
 WRITER_MODEL = "gpt-6-sol"
@@ -30,7 +31,7 @@ def client() -> OpenAI:
     return OpenAI(api_key=settings.openai_api_key, max_retries=3, timeout=180)
 
 
-def parse[T: BaseModel](model: str, system: str, user: str, schema: type[T]) -> tuple[T, dict]:
+def parse[T: BaseModel](model: str, system: str, user: str, schema: type[T]) -> tuple[T, Usage]:
     """Ask `model` for an instance of `schema` (Structured Outputs). Returns (result, usage)."""
     response = client().responses.parse(
         model=model,
@@ -41,9 +42,9 @@ def parse[T: BaseModel](model: str, system: str, user: str, schema: type[T]) -> 
         raise RuntimeError(f"{model} returned no {schema.__name__} (refusal or truncation)")
     u = response.usage
     cached = u.input_tokens_details.cached_tokens if u.input_tokens_details else 0
-    usage = {
-        "usd": cost_usd(model, u.input_tokens, cached, u.output_tokens),
-        "in": u.input_tokens,
-        "out": u.output_tokens,
-    }
+    usage = Usage(
+        llm_usd=cost_usd(model, u.input_tokens, cached, u.output_tokens),
+        tokens_in=u.input_tokens,
+        tokens_out=u.output_tokens,
+    )
     return response.output_parsed, usage

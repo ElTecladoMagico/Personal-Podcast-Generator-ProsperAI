@@ -1,5 +1,5 @@
 from app.pipeline.checker import remove_flagged, verify
-from app.schemas import Chapter, CheckerReport, CheckIssue, Script, Turn
+from app.schemas import Chapter, CheckerReport, CheckIssue, Script, Turn, Usage
 
 
 def t(text: str, sources=("a1",)) -> Turn:
@@ -36,14 +36,14 @@ def test_clean_draft_needs_a_single_check():
 
     def check(s):
         calls.append("check")
-        return CheckerReport(issues=[], verdict="ok"), {"usd": 0.01}
+        return CheckerReport(issues=[], verdict="ok"), Usage(llm_usd=0.01)
 
     def revise(s, issues):
         raise AssertionError("no revision needed")
 
-    final, report, usages = verify(script(), check, revise)
-    assert final == script() and calls == ["check"] and len(usages) == 1
-    assert report["issues_found"] == 0 and report["turns_removed"] == 0
+    final, report, usage = verify(script(), check, revise)
+    assert final == script() and calls == ["check"] and usage.llm_usd == 0.01
+    assert report.issues_found == 0 and report.turns_removed == 0 and report.second is None
 
 
 def test_flagged_draft_is_revised_once_and_leftovers_removed():
@@ -56,11 +56,11 @@ def test_flagged_draft_is_revised_once_and_leftovers_removed():
     revised = script()
     revised.chapters[1].turns[0].text = "fact 1, corrected"
 
-    final, report, usages = verify(
+    final, report, usage = verify(
         script(),
-        lambda s: (next(reports), {"usd": 0.01}),
-        lambda s, issues: (revised, {"usd": 0.02}),
+        lambda s: (next(reports), Usage(llm_usd=0.01)),
+        lambda s, issues: (revised, Usage(llm_usd=0.02)),
     )
     assert [x.text for x in final.chapters[1].turns] == ["fact 1, corrected", "wow"]
-    assert (report["issues_found"], report["issues_fixed"], report["turns_removed"]) == (2, 1, 1)
-    assert len(usages) == 3  # check, revise, check
+    assert (report.issues_found, report.issues_fixed, report.turns_removed) == (2, 1, 1)
+    assert usage.llm_usd == 0.04  # check + revise + check

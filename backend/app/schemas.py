@@ -133,3 +133,23 @@ class CheckIssue(BaseModel):  # step 5
 class CheckerReport(BaseModel):
     issues: list[CheckIssue]
     verdict: Literal["ok", "fix"]
+
+
+# --- Cost ------------------------------------------------------------------------
+
+
+class Usage(BaseModel):
+    """What a step spent. Summed into episodes.cost."""
+
+    llm_usd: float = 0.0
+    tokens_in: int = 0
+    tokens_out: int = 0
+    tts_chars: int = 0
+
+    def __add__(self, other: "Usage") -> "Usage":
+        return Usage(
+            llm_usd=round(self.llm_usd + other.llm_usd, 6),
+            tokens_in=self.tokens_in + other.tokens_in,
+            tokens_out=self.tokens_out + other.tokens_out,
+            tts_chars=self.tts_chars + other.tts_chars,
+        )

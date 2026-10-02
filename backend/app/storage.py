@@ -13,3 +13,11 @@ def audio_relpath(user_id: uuid.UUID, episode_id: uuid.UUID) -> str:
 
 def audio_file(relpath: str) -> Path:
     return Path(settings.audio_dir) / relpath
+
+
+def new_audio_file(user_id: uuid.UUID, episode_id: uuid.UUID) -> tuple[str, Path]:
+    """(relpath for the database, absolute path ready to be written)."""
+    relpath = audio_relpath(user_id, episode_id)
+    path = audio_file(relpath)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return relpath, path

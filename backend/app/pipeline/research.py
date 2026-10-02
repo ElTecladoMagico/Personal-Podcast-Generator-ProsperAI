@@ -7,19 +7,47 @@ from sqlmodel import Session
 from app.extract import get_article
 from app.models import Article as ArticleRow
 from app.models import Episode
-from app.pipeline.run import save_work
-from app.schemas import Article, Candidate, EditorSelection, Preferences
+from app.pipeline.state import Work
+from app.schemas import Article, Candidate, EditorSelection, Preferences, Usage
 
 MIN_TEXT = 800  # a story needs at least one article this long, or a backup takes its place
 MAX_TEXT = 6000  # per article, to keep the writer's prompt (and its cost) bounded
 PER_STORY = 2  # articles from different outlets, so the hosts can compare coverage
 MIN_STORIES = 2
 
+Reader = Callable[[str], ArticleRow | None]
+
+
+def article_for(candidate: Candidate, story_id: str, read: Reader) -> Article | None:
+    """The candidate's article if it is long enough: Exa's text as-is, otherwise scraped."""
+    if candidate.text:
+        url, title, text, image = (
+            candidate.url,
+            candidate.title,
+            candidate.text,
+            candidate.image_url,
+        )
+    elif page := read(candidate.url):
+        url, title, text, image = page.url, page.title or candidate.title, page.text, page.image_url
+    else:
+        return None
+    if len(text) < MIN_TEXT:
+        return None
+    return Article(
+        id="",
+        story_id=story_id,
+        url=url,
+        source=candidate.source,
+        title=title,
+        text=text[:MAX_TEXT],
+        image_url=image,
+    )
+
 
 def research(
     selection: EditorSelection,
     candidates: list[Candidate],
-    read: Callable[[str], ArticleRow | None],
+    read: Reader,
     minimum: int = MIN_STORIES,
 ) -> tuple[list[Article], list[str]]:
     """(articles a1..aN, story ids that made it). Backups replace stories we cannot read."""
@@ -32,32 +60,12 @@ def research(
             break
         found: list[Article] = []
         outlets: set[str] = set()
-        for cid in pick.candidate_ids:
-            c = by_id[cid]
-            if c.source in outlets:
-                continue
-            if c.text:
-                url, title, text, image = c.url, c.title, c.text, c.image_url
-            elif page := read(c.url):
-                url, title, text, image = page.url, page.title or c.title, page.text, page.image_url
-            else:
-                continue
-            if len(text) < MIN_TEXT:
-                continue
-            found.append(
-                Article(
-                    id="",
-                    story_id=pick.story_id,
-                    url=url,
-                    source=c.source,
-                    title=title,
-                    text=text[:MAX_TEXT],
-                    image_url=image,
-                )
-            )
-            outlets.add(c.source)
+        for c in (by_id[cid] for cid in pick.candidate_ids):
             if len(found) == PER_STORY:
                 break
+            if c.source not in outlets and (article := article_for(c, pick.story_id, read)):
+                found.append(article)
+                outlets.add(c.source)
         if found:
             stories.append(pick.story_id)
             articles += found
@@ -68,9 +76,8 @@ def research(
     return articles, stories
 
 
-def step(ep: Episode, prefs: Preferences, session: Session) -> None:
-    selection = EditorSelection.model_validate(ep.work["selection"])
-    candidates = [Candidate.model_validate(c) for c in ep.work["candidates"]]
-    articles, stories = research(selection, candidates, lambda url: get_article(url, session))
-    save_work(ep, "articles", [a.model_dump() for a in articles])
-    save_work(ep, "stories", stories)
+def step(ep: Episode, prefs: Preferences, work: Work, session: Session) -> Usage:
+    work.articles, work.stories = research(
+        work.selection, work.candidates, lambda url: get_article(url, session)
+    )
+    return Usage()
