@@ -77,3 +77,13 @@ Para cada voz × {en, es}: TTS `eleven_v3` con la frase "Hi, I'm {name}. This is
 - [ ] La importación tolera las respuestas "sucias" típicas y da errores comprensibles.
 - [ ] El asistente se completa en < 60 s con importación.
 - [ ] Las preferencias guardadas validan contra `Preferences` y el primer episodio arranca solo.
+
+## Notas de implementación (2026-10-02)
+- **Catálogo por idioma:** 4 voces castellanas (`es`) + 6 *premade* (`en`), cada una con una muestra en su idioma, grabada con los mismos ajustes que los episodios (*creative*, ×1,1). 10 MP3 (~80 KB cada uno, ~900 créditos una vez) en lugar de 24 × 2. Los descriptores salen de la descripción pública de cada voz.
+- **Orden de los pasos:** el idioma va en "¿Cómo quieres que suene?" (paso 3), antes que los presentadores, porque decide las voces recomendadas y la pareja por defecto. La pareja por defecto **sigue al idioma** mientras el usuario no la toque. Horario en el último paso.
+- **Peso de cada interés** con 5 puntos clicables en el chip (accesibles: `aria-pressed`, etiqueta "Importancia de X: n de 5") en vez de popover con slider.
+- **`MeOut.preferences` tipado** (`Preferences | null`): sin casts en el frontend.
+- **Importación tolerante** (`app/importer.py`): primer objeto `{…}` balanceado, ignorando llaves dentro de cadenas; pesos acotados a 1–5, máximo 12 intereses, `tone`/`depth` desconocidos descartados, campos extra ignorados. 422 con mensaje claro si no hay JSON.
+- **E2E real (local):** usuario nuevo → asistente → pegar una respuesta "sucia" de ChatGPT (texto + ```json) → 5 chips con sus pesos, y también "evitar" y "medios de confianza" → pasos 2–5 → "Empezar mi podcast" → `next_run_at` = **06:40 hora de Madrid** (07:00 − 20 min) → eventos `user_signed_up`, `onboarding_completed {method: import}`, `episode_requested` → Home con la redacción trabajando. Ajustes guarda y registra `preferences_updated`.
+- **Pulido tras la revisión:** el `textarea` crecía con el contenido (*field-sizing*) y empujaba "Importar" bajo el pie fijo → altura máxima con scroll; etiquetas que repetían el título del paso → "Temas que evitar" y "Frecuencia".
+- Informe TDD: [`docs/testing/08-onboarding.tdd.md`](../testing/08-onboarding.tdd.md).

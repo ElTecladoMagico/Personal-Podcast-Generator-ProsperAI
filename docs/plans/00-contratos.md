@@ -241,11 +241,11 @@ El frontend solo lee `status`. Etiquetas UI: queued "En cola", fetching "📡 Re
 | Método | Ruta | Auth | Rama | Descripción |
 |---|---|---|---|---|
 | GET | `/health` | — | 1 | `{"ok": true}` |
-| GET | `/me` | JWT | 1 | Usuario (upsert por `clerk_id`), preferencias, `feed_url`, `is_admin` |
+| GET | `/me` | JWT | 1 | Usuario (upsert por `clerk_id`), `preferences` (`Preferences`, o `null` antes del onboarding), `feed_url`, `is_admin` |
 | PUT | `/me/preferences` | JWT | 8 | Body `{preferences: Preferences, method?: "import"\|"manual"}`. Valida, recalcula `next_run_at`, marca `onboarded_at` |
 | POST | `/me/preferences/import` | JWT | 8 | Body `{text}` → extrae y valida el JSON pegado; devuelve el `Preferences` parcial o 422 con un mensaje claro |
 | POST | `/me/feed-token/rotate` | JWT | 10 | Nuevo `feed_token` |
-| GET | `/voices` | — | 8 | Catálogo §9 |
+| GET | `/voices` | — | 8 | Catálogo §9: `{id, name, language (es|en), gender, descriptor {en, es}, preview: "/voices/<id>.mp3"}` |
 | POST | `/episodes` | JWT | 7 | Crea un episodio `manual` (400 sin onboarding; 409 si ya hay uno en curso, garantizado por el índice único parcial `ix_episodes_one_active_per_user`; 429 si supera `MAX_MANUAL_EPISODES_PER_DAY` en 24 h, sin contar los fallidos) |
 | GET | `/episodes` | JWT | 7 | Lista del usuario, ligera: `id, status, title, summary, created_at, duration_s, topics` (la portada generativa se deriva del `id` en el frontend) |
 | GET | `/episodes/{id}` | JWT | 7 | Detalle: `status`, `failed_stage`, `error`, `progress` (`{candidates, outlets, stories[titulares], articles, issues_found, issues_fixed, recording{done,total}}`), `hosts` (nombres), y cuando está `ready`: `script`, `sources` (`{a1: {title, url, source, image_url}}`, sin textos) y `audio_url` firmado. El frontend lo consulta cada 1,5 s mientras no sea terminal |
