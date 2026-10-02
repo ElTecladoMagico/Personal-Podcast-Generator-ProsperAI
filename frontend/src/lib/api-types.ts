@@ -148,6 +148,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Track */
+        post: operations["track_events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -169,6 +186,19 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Chapter */
+        Chapter: {
+            /** Story Id */
+            story_id: string | null;
+            /** Title */
+            title: string;
+            /** Turns */
+            turns: components["schemas"]["Turn"][];
+            /** Start S */
+            start_s?: number | null;
+            /** End S */
+            end_s?: number | null;
+        };
         /** EpisodeDetail */
         EpisodeDetail: {
             /**
@@ -198,10 +228,7 @@ export interface components {
             progress: components["schemas"]["GenerationProgress"];
             /** Hosts */
             hosts: string[];
-            /** Script */
-            script: {
-                [key: string]: unknown;
-            } | null;
+            script: components["schemas"]["Script"] | null;
             /** Sources */
             sources: {
                 [key: string]: components["schemas"]["Source"];
@@ -231,6 +258,26 @@ export interface components {
             duration_s: number | null;
             /** Topics */
             topics: string[];
+        };
+        /** EventIn */
+        EventIn: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "play_started" | "chapter_started" | "chapter_skipped" | "listen_progress" | "feedback";
+            /**
+             * Episode Id
+             * Format: uuid
+             */
+            episode_id: string;
+            /**
+             * Props
+             * @default {}
+             */
+            props: {
+                [key: string]: unknown;
+            };
         };
         /**
          * GenerationProgress
@@ -429,6 +476,15 @@ export interface components {
              */
             timezone: string;
         };
+        /** Script */
+        Script: {
+            /** Title */
+            title: string;
+            /** Summary */
+            summary: string;
+            /** Chapters */
+            chapters: components["schemas"]["Chapter"][];
+        };
         /** Source */
         Source: {
             /** Title */
@@ -439,6 +495,24 @@ export interface components {
             source: string;
             /** Image Url */
             image_url: string | null;
+        };
+        /** Turn */
+        Turn: {
+            /** Speaker */
+            speaker: number;
+            /** Text */
+            text: string;
+            /** Source Ids */
+            source_ids: string[];
+            /** Start S */
+            start_s?: number | null;
+            /** End S */
+            end_s?: number | null;
+            /** Words */
+            words?: [
+                number,
+                string
+            ][] | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -720,6 +794,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Voice"][];
+                };
+            };
+        };
+    };
+    track_events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
