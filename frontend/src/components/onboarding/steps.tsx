@@ -69,7 +69,7 @@ export function SoundStep({ prefs, onChange, voices }: StepProps) {
       <Choice label={t('onb.depth')} value={prefs.depth ?? 'analysis'} onChange={(depth) => onChange({ ...prefs, depth })}
         options={(['headlines', 'analysis'] as const).map((v) => ({ value: v, label: t(`depth.${v}`) }))} />
       <Choice label={t('onb.duration')} value={prefs.duration_min ?? 10} onChange={(duration_min) => onChange({ ...prefs, duration_min })}
-        options={([5, 10, 20] as const).map((v) => ({ value: v, label: `${v} min` }))} />
+        options={([5, 10] as const).map((v) => ({ value: v, label: `${v} min` }))} />
     </div>
   )
 }

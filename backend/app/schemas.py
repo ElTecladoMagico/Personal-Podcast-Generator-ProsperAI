@@ -48,7 +48,7 @@ class Preferences(BaseModel):
     tone: Literal["casual", "serious", "nerdy"] = "casual"
     depth: Literal["headlines", "analysis"] = "analysis"
     format: Literal["solo", "duo", "debate"] = "duo"
-    duration_min: Literal[5, 10, 20] = 10
+    duration_min: Literal[5, 10] = 10
     hosts: list[Host]
     schedule: Schedule = Schedule()
 

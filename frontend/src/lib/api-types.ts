@@ -78,27 +78,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/audio/{episode_id}.mp3": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Audio
-         * @description MP3 for <audio> and podcast apps, which cannot send a JWT: the owner's feed token in
-         *     `?k=` is the credential (revocable). FileResponse answers Range requests with 206.
-         */
-        get: operations["get_audio_audio__episode_id__mp3_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/episodes": {
         parameters: {
             query?: never;
@@ -179,23 +158,6 @@ export interface paths {
         put?: never;
         /** Track */
         post: operations["track_events_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/feeds/{feed_token}.xml": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Feed */
-        get: operations["get_feed_feeds__feed_token__xml_get"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -463,7 +425,7 @@ export interface components {
              * @default 10
              * @enum {integer}
              */
-            duration_min: 5 | 10 | 20;
+            duration_min: 5 | 10;
             /** Hosts */
             hosts: components["schemas"]["Host"][];
             /**
@@ -704,40 +666,6 @@ export interface operations {
             };
         };
     };
-    get_audio_audio__episode_id__mp3_get: {
-        parameters: {
-            query: {
-                k: string;
-                src?: string | null;
-            };
-            header?: {
-                range?: string | null;
-            };
-            path: {
-                episode_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_episodes_episodes_get: {
         parameters: {
             query?: never;
@@ -879,37 +807,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_feed_feeds__feed_token__xml_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                feed_token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
             };
             /** @description Validation Error */
             422: {

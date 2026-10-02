@@ -62,3 +62,10 @@ def test_weekly_schedule_with_weekday_is_valid():
 def test_interest_bounds(interests):
     with pytest.raises(ValidationError):
         Preferences.model_validate(prefs(interests=interests))
+
+
+def test_episodes_last_5_or_10_minutes():
+    # 20 was offered once but production caps at 10 (EPISODE_MAX_MINUTES): it promised too much.
+    assert Preferences.model_validate(prefs(duration_min=5)).duration_min == 5
+    with pytest.raises(ValidationError):
+        Preferences.model_validate(prefs(duration_min=20))
