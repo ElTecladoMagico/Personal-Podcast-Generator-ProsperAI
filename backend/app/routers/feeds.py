@@ -18,6 +18,10 @@ router = APIRouter()
 ITUNES = "http://www.itunes.com/dtds/podcast-1.0.dtd"
 ET.register_namespace("itunes", ITUNES)
 MAX_ITEMS = 50
+DESCRIPTION = {
+    "en": "Your news, picked and told for you every day.",
+    "es": "Tus noticias, elegidas y contadas para ti cada día.",
+}
 
 
 def sub(parent: ET.Element, tag: str, value: str | None = None, **attrs: str) -> ET.Element:
@@ -48,7 +52,7 @@ def build_feed(user: User, episodes: list[Episode]) -> bytes:
     channel = sub(rss, "channel")
     sub(channel, "title", feed_title(user, language))
     sub(channel, "link", settings.public_base_url)
-    sub(channel, "description", "Your news, picked and told for you every day.")
+    sub(channel, "description", DESCRIPTION.get(language, DESCRIPTION["en"]))
     sub(channel, "language", language)
     sub(channel, "itunes:author", "Personal Podcast Generator")
     sub(channel, "itunes:image", href=f"{settings.public_base_url}/static/cover.png")
