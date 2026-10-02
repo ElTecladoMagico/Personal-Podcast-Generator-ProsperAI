@@ -8,6 +8,7 @@ import { useMe } from '@/lib/api'
 import { useT } from '@/lib/i18n'
 import Home from '@/pages/Home'
 import Landing from '@/pages/Landing'
+import Episode from '@/pages/Episode'
 import Onboarding from '@/pages/Onboarding'
 import Settings from '@/pages/Settings'
 
@@ -22,9 +23,9 @@ export default function App() {
         </Route>
         <Route element={<RequireAuth />}>
           <Route element={<AppShell />}>
-            {/* Filled in later branches: 09 player, 12 admin. */}
+            {/* Filled in a later branch: 12 admin. */}
             <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/episodes/:id" element={<Placeholder title="page.episode" />} />
+            <Route path="/episodes/:id" element={<Episode />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/admin" element={<AdminOnly />} />
           </Route>
