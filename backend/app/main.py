@@ -1,10 +1,22 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import jobs
 from app.config import settings
-from app.routers import me
+from app.routers import audio, me
 
-app = FastAPI(title="Personal Podcast API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if settings.scheduler_enabled:  # off in tests
+        jobs.recover_interrupted()
+    yield
+    jobs.executor.shutdown(wait=False, cancel_futures=True)  # unfinished ones resume on restart
+
+
+app = FastAPI(title="Personal Podcast API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -12,6 +24,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 app.include_router(me.router)
+app.include_router(audio.router)
 
 
 @app.get("/health")

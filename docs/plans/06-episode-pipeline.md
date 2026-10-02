@@ -164,3 +164,31 @@ Máximo 2 llamadas al verificador y 1 reescritura: coste y duración acotados.
 - **Créditos de ElevenLabs:** cada prueba de 2 min ≈ 1.800 créditos → presupuestar unas 10 pruebas (18k) + el `sample.mp3` final de 10 min (9k).
 - **Saltos de tono entre tramos:** `seed` fijo + cortes en el límite de capítulo (no a mitad de conversación) + continuidad si `eleven_v3` la admite.
 - **Etiquetas de audio en la alineación:** pueden desalinear las palabras → *fallback* a resaltar por turno.
+
+## Notas de implementación (2026-10-01)
+- **Modelos GPT-6** (`gpt-6-sol`, `gpt-6-luna`) en lugar de GPT-5.4: más nuevos y más baratos (ADR 0007, "Cambio").
+- **Pasos inyectables:** `generate_episode(id, steps=…)` y `default_steps()` lista los seis pasos en un sitio (sin registro por efectos de importación). Cada paso con lógica pura testeable y la llamada al modelo o a la API separada.
+- **El guionista devuelve `WriterScript`** (sin campos de tiempos) y `to_script` lo sanea: etiquetas de audio permitidas, sin URLs ni markdown, `source_ids` existentes, `speaker` válido.
+- **Longitud calibrada** con audio real: 850 caracteres/minuto, objetivo como máximo, recorte desde +15 % (ver resultados).
+- **Reservas en `finish()`:** la memoria de historias busca también en `backups` cuando una reserva sustituyó a una historia.
+- **`Candidate.image_url`** (Exa da imagen) y `articles.image_url` (og:image): la tarjeta del reproductor tiene imagen sin trabajo extra.
+- **Reanudación tras un crash:** si el proceso muere, el estado queda en la etapa; `generate_episode` reanuda ahí (antes empezaba de cero). `jobs.recover_interrupted()` lo hace al arrancar.
+- **Audio:** Starlette ya responde 206 a `Range`; no hizo falta código propio. `storage` sin limpieza todavía (rama 10).
+- **`previous_text`** no existe en `eleven_v3` (ADR 0008).
+- Resultados reales: [`06-resultados.md`](06-resultados.md). Informe TDD: [`docs/testing/06-episode-pipeline.tdd.md`](../testing/06-episode-pipeline.tdd.md).
+
+### Límites conocidos (revisión propia del diff, 2026-10-01)
+- **Mismo medio con dos nombres:** Google News da "El País" y Exa da "elpais.com"; la regla de "2 medios distintos por historia" podría coger el mismo medio dos veces. Impacto bajo (solo reduce la variedad).
+- **Crash entre `recording` y `finish()`:** el episodio queda en `recording` y al reanudarse vuelve a grabar (≈ 1 crédito por carácter). Ventana de milisegundos; aceptado.
+- **Coste de Exa** (~0,007 USD por búsqueda) y **créditos de un tramo de TTS que falla** no se suman a `episodes.cost`. Se puede estimar en el dashboard (rama 12) como nº de intereses × 0,007.
+
+### Revisión `thermo-nuclear-code-quality-review` (2026-10-02)
+Veredicto inicial: no aprobada por complejidad incidental. Cambios aplicados (`refactor(pipeline): typed Work and Usage…`), con el mismo comportamiento verificado en un episodio real:
+1. **`work` tipado** (`Work` en `app/pipeline/state.py`): el orquestador lo carga una vez, lo pasa a cada paso y lo guarda solo si el paso termina bien. Desaparecen `save_work`, las claves en texto y las validaciones repetidas; cada etapa es atómica.
+2. **`Usage` sumable** (`app/schemas.py`): cada paso devuelve su coste y el orquestador lo acumula. `episodes.cost` pasa a ser plano (contrato actualizado).
+3. **Sin imports diferidos:** los pasos ya no importan el orquestador, así que `STEPS` es un dict normal; el paso 1 vive en `reporter.py`.
+4. **Rama muerta eliminada** en `finish()`; la memoria sale de los capítulos del guion final (una historia que eliminó el verificador no cuenta como escuchada).
+5. `to_script` construye el `Script` tipado; `research()` usa `article_for()`; `storage.new_audio_file()` crea el directorio.
+6. **Tramos de voz en paralelo** (3): `eleven_v3` no admite continuidad, así que son independientes. `recording` pasó de 65–91 s a 43 s en un episodio de 2 min.
+
+Mantenido a propósito: `WriterScript` separado de `Script` (contrato explícito entre lo que escribe el modelo y lo que rellena el sistema) y `verify()` con llamadas inyectadas.

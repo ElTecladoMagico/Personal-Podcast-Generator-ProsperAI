@@ -124,13 +124,13 @@ Puertos locales: API `8000`, Vite `5173`, Postgres `5433` (para no chocar con ot
 | `error` | text null | mensaje corto |
 | `language` | text | copia de las preferencias en el momento de crear |
 | `prefs_snapshot` | jsonb | `Preferences` usadas (reproducibilidad) |
-| `work` | jsonb | resultados intermedios: `candidates`, `selection`, `articles`, `draft_script`, `checker_report`, `final_script`, `recording` (`{done, total}`) |
+| `work` | jsonb | resultados intermedios, modelo `Work` tipado (`app/pipeline/state.py`): `candidates`, `selection`, `articles`, `stories` (ids que pasaron la documentación), `draft_script`, `checker_report` (`FactCheck`), `final_script`, `recording` (`{done, total}`) |
 | `title`, `summary` | text null | del guion final |
 | `script` | jsonb null | `Script` final con tiempos (§5) |
 | `audio_path` | text null | relativo a `AUDIO_DIR` |
 | `duration_s` | float null | |
 | `audio_expired` | bool default false | tras la limpieza de 30 días |
-| `cost` | jsonb | `{"llm_usd":…, "tts_chars":…, "tokens":{"in":…,"out":…}}` |
+| `cost` | jsonb | `Usage` (`app/schemas.py`): `{"llm_usd":…, "tokens_in":…, "tokens_out":…, "tts_chars":…}`. Cada paso devuelve el suyo y el orquestador los suma |
 | `stage_timings` | jsonb | `{"fetching": 3.2, "editing": 8.1, …}` en segundos |
 | `created_at`, `started_at`, `finished_at` | timestamptz | |
 
@@ -182,6 +182,7 @@ class Candidate(BaseModel):          # paso 1
     origin: Literal["google_news", "exa", "hn"]
     interest: str                    # tema que lo trajo
     text: str | None = None          # Exa ya trae el cuerpo
+    image_url: str | None = None     # Exa trae imagen; las páginas descargadas, og:image (paso 3)
 
 class EditorPick(BaseModel):         # paso 2
     story_id: str                    # "s1".."s7"
@@ -303,5 +304,5 @@ Los descriptores (género, tono) se completan en la rama 8 escuchando las muestr
 - **SDKs:** `openai` (`client.responses.parse(model=…, input=…, text_format=PydanticModel)` → `.output_parsed`, `.usage`), `elevenlabs` (`client.text_to_dialogue.convert_with_timestamps(…)`), `httpx`, `feedparser`, `trafilatura`, `apscheduler` 3.x, `pyjwt[crypto]` (`PyJWKClient`), `sqlmodel`, `alembic`, `psycopg[binary]`, `pydantic-settings`.
 - **Frontend:** `@clerk/react` (Core 3), `react-router` 7, `@tanstack/react-query`, `motion` (animaciones), shadcn/ui + Tailwind 4, `recharts` (vía shadcn charts), `openapi-typescript` (dev).
 - **Antelación de la programación:** `GENERATION_LEAD_MIN = 20`. `next_run_at` = hora del usuario − 20 min, para que el episodio esté listo a la hora pedida. La UI muestra `next_run_at + 20 min`.
-- **Modelos LLM** (constantes en `llm.py`): `EDITOR_MODEL = "gpt-5.4-mini"`, `WRITER_MODEL = "gpt-5.4"`, `CHECKER_MODEL = "gpt-5.4"`, `ASK_MODEL = "gpt-5.4-mini"`. Disponibilidad comprobada con `/v1/models` el 2026-10-01. Precios en una tabla `PRICES` en `llm.py`, a verificar en la web de OpenAI al implementar.
+- **Modelos LLM** (constantes en `llm.py`): `EDITOR_MODEL = "gpt-6-luna"`, `WRITER_MODEL = "gpt-6-sol"`, `CHECKER_MODEL = "gpt-6-sol"`, `ASK_MODEL = "gpt-6-luna"` (ADR 0007, "Cambio"). Disponibilidad comprobada con `/v1/models` el 2026-10-01. Precios en `PRICES` (`llm.py`), tomados de la web de OpenAI el mismo día.
 - **ElevenLabs:** `model_id="eleven_v3"`, `output_format="mp3_44100_128"` (192 kbps exige plan Creator), `language_code=prefs.language`, `seed` por episodio. 1 crédito por carácter (cabecera `character-cost`).
