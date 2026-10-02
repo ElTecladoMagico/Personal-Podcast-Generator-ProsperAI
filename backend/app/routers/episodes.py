@@ -16,6 +16,7 @@ from app.models import Episode, User
 from app.pipeline.run import new_episode
 from app.pipeline.state import Progress, Work
 from app.schemas import Script
+from app.storage import audio_url
 
 router = APIRouter(prefix="/episodes")
 
@@ -94,7 +95,7 @@ def detail(ep: Episode, owner: User) -> EpisodeDetail:
         script=Script.model_validate(ep.script) if ready and ep.script else None,
         sources={a.id: Source(**a.model_dump()) for a in work.articles} if ready else {},
         audio_url=(
-            f"{settings.public_base_url}/audio/{ep.id}.mp3?k={owner.feed_token}"
+            audio_url(ep.id, owner.feed_token)
             if ready and ep.audio_path and not ep.audio_expired
             else None
         ),

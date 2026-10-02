@@ -1,3 +1,4 @@
+import secrets
 import uuid
 from datetime import UTC, datetime
 from typing import Literal
@@ -83,3 +84,11 @@ def import_preferences(body: ImportIn, user: CurrentUser) -> ImportedPreferences
         raise HTTPException(
             422, "We couldn't find valid JSON with your interests. Did you paste the whole answer?"
         ) from err
+
+
+@router.post("/me/feed-token/rotate")
+def rotate_feed_token(user: CurrentUser, claims: Claims, session: DbSession) -> MeOut:
+    """New private link; apps subscribed with the old one stop getting episodes."""
+    user.feed_token = secrets.token_urlsafe(32)
+    session.commit()
+    return me_out(user, claims)
