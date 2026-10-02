@@ -15,6 +15,7 @@ from app.jobs import run_in_pool
 from app.models import Episode, User
 from app.pipeline.run import new_episode
 from app.pipeline.state import Progress, Work
+from app.schemas import Script
 
 router = APIRouter(prefix="/episodes")
 
@@ -42,6 +43,7 @@ class GenerationProgress(BaseModel):
 
 
 class Source(BaseModel):
+    story_id: str
     title: str
     url: str
     source: str
@@ -53,7 +55,7 @@ class EpisodeDetail(EpisodeSummary):
     error: str | None
     progress: GenerationProgress
     hosts: list[str]
-    script: dict | None  # Script with timings, once ready
+    script: Script | None  # with timings, once ready
     sources: dict[str, Source]  # article id → where it came from (no article text)
     audio_url: str | None
 
@@ -89,7 +91,7 @@ def detail(ep: Episode, owner: User) -> EpisodeDetail:
             recording=work.recording,
         ),
         hosts=[h["name"] for h in ep.prefs_snapshot.get("hosts", [])],
-        script=ep.script if ready else None,
+        script=Script.model_validate(ep.script) if ready and ep.script else None,
         sources={a.id: Source(**a.model_dump()) for a in work.articles} if ready else {},
         audio_url=(
             f"{settings.public_base_url}/audio/{ep.id}.mp3?k={owner.feed_token}"
