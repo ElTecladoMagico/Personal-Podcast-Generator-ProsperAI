@@ -344,7 +344,7 @@ export interface components {
              */
             sources_i_trust: string[];
             /** Language */
-            language?: string | null;
+            language?: ("es" | "en") | null;
             /** Tone */
             tone?: ("casual" | "serious" | "nerdy") | null;
             /** Depth */
@@ -400,8 +400,9 @@ export interface components {
             /**
              * Language
              * @default en
+             * @enum {string}
              */
-            language: string;
+            language: "es" | "en";
             /**
              * Tone
              * @default casual

@@ -69,3 +69,10 @@ def test_episodes_last_5_or_10_minutes():
     assert Preferences.model_validate(prefs(duration_min=5)).duration_min == 5
     with pytest.raises(ValidationError):
         Preferences.model_validate(prefs(duration_min=20))
+
+
+def test_podcasts_are_in_spanish_or_english():
+    # The only languages with native voices and a tested writer prompt.
+    assert Preferences.model_validate(prefs(language="es")).language == "es"
+    with pytest.raises(ValidationError):
+        Preferences.model_validate(prefs(language="fr"))

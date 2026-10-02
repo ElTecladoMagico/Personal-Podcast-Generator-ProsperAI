@@ -9,6 +9,10 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 # --- User preferences -------------------------------------------------------
 
 
+# Podcast languages: the ones with native voices and a tested writer prompt (ISO 639-1).
+Language = Literal["es", "en"]
+
+
 class Interest(BaseModel):
     topic: Annotated[str, Field(min_length=1, max_length=80)]
     why: str | None = None
@@ -44,7 +48,7 @@ class Preferences(BaseModel):
     interests: Annotated[list[Interest], Field(min_length=1, max_length=12)]
     avoid: list[str] = []
     sources_i_trust: list[str] = []
-    language: str = "en"  # ISO 639-1
+    language: Language = "en"
     tone: Literal["casual", "serious", "nerdy"] = "casual"
     depth: Literal["headlines", "analysis"] = "analysis"
     format: Literal["solo", "duo", "debate"] = "duo"

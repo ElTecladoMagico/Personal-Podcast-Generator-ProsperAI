@@ -118,3 +118,9 @@ def test_import_is_tolerant_with_what_ais_produce(client):
 def test_import_without_json_gives_a_helpful_422(client):
     r = client.post("/me/preferences/import", json={"text": "Sorry, I can't help with that."})
     assert r.status_code == 422 and "JSON" in r.json()["detail"]
+
+
+def test_import_ignores_languages_we_cannot_voice(client):
+    text = '{"interests": [{"topic": "Cine"}], "language": "fr-FR"}'
+    r = client.post("/me/preferences/import", json={"text": text})
+    assert r.status_code == 200 and r.json()["language"] is None  # keeps what the user chose
