@@ -2,8 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { type Me, useApi } from './api'
 
 /** Subscribe links that open the app with the feed filled in (Apple Podcasts: Mac and iPhone;
- * Pocket Casts: phone). Any other
- * app takes the copied URL ("Add by URL"). */
+ * Pocket Casts: phone). Any other app takes the copied URL ("Add by URL"). */
 export function podcastApps(feedUrl: string) {
   const bare = feedUrl.replace(/^https?:\/\//, '')
   return [

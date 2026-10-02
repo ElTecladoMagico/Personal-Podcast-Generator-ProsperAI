@@ -78,3 +78,14 @@
 - **Verificación local:** Home muestra el próximo episodio; Ajustes → copiar, enlaces de Apple Podcasts/Overcast/Pocket Casts correctos, "Regenerar enlace" con confirmación → el enlace viejo da 404 y el nuevo devuelve el feed. 390 px sin scroll horizontal; Lighthouse móvil de Ajustes: accesibilidad 97 (el único fallo, `target-size`, son los puntos de importancia de la rama 8; arreglarlo exige rediseñar el chip), buenas prácticas 100, SEO 100.
 - **Pendiente:** verificación en producción (suscripción real en Apple Podcasts y Pocket Casts, episodio programado que llega solo, validador de feeds).
 - Informe TDD: [`docs/testing/10-scheduler-rss.tdd.md`](../testing/10-scheduler-rss.tdd.md).
+
+## Revisión general antes de fusionar (2026-10-02)
+Revisión crítica de lo construido en las ramas 2–10. Arreglado, cada punto con su test (RED → GREEN) y la suite completa en verde:
+- **Feed en apps reales:** el feed y el audio respondían 405 a `HEAD`, que Apple Podcasts y otras apps usan para comprobar el episodio → ahora `GET`+`HEAD` (HEAD no cuenta como descarga). Esas dos rutas salen del OpenAPI (GET+HEAD duplicaba el *operation id* y rompía los tipos generados). El `<link>` del canal apuntaba a la API (404) → `APP_URL` (`https://podcast.scuda.es`). Comprobado con `feedparser` (sin errores) y con `curl -I` contra uvicorn.
+- **Ajustes → podcasts:** fuera Overcast (su enlace solo funciona en iPhone); quedan Apple Podcasts (Mac e iPhone) y Pocket Casts, más la nota "pégalo en *Añadir por URL*" para cualquier otra app.
+- **Duración:** se ofrecían 20 min pero producción limita a 10 (`EPISODE_MAX_MINUTES`) → solo 5 y 10. Migración de datos `c3d1e7a9f2b4` (20 → 10 en preferencias y *snapshots*).
+- **Idiomas:** FR/DE/IT/PT no tenían voces nativas ni prompt probado → solo español e inglés (`Language = Literal["es","en"]`); la importación ignora otros idiomas y conserva el elegido; selector de dos botones. Migración `d8f2a4c6b1e3` (otros → `en`, que ya usaban voces inglesas).
+- **Puntos de importancia:** 24 px de área táctil en pantallas táctiles (`pointer-coarse:`), compactos con ratón. Lighthouse móvil de Ajustes: accesibilidad **100**.
+- **👍/👎:** el detalle del episodio devuelve `votes` (último voto por historia), y el reproductor los muestra tras recargar.
+
+Revisado y sin cambios: el feedback y los saltos sí llegan al editor (`feedback_by_interest`); pesos, temas a evitar, medios de confianza, tono y profundidad sí llegan a fuentes, editor y guionista. Riesgos conocidos que se documentan en `solution.md`: el resolutor de Google News (frágil, términos de uso), Clerk en modo desarrollo, y que "Generar ahora" justo antes de la hora programada salta el programado de ese día (intencionado: evita dos episodios casi iguales).

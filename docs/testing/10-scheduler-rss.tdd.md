@@ -23,3 +23,14 @@
 | 8 | Regenerar el token mata el feed anterior y el nuevo funciona | `…::test_rotating_the_token…` |
 | 9 | `next_episode_at` es la hora del oyente (07:00), `null` sin horario | `test_preferences_api.py`, `test_me.py` |
 | 10 | Enlaces `podcast://`, `overcast://`, `pktc://`; "sábado, 07:00" / "Saturday 01:00" según la zona | `src/lib/feed.test.ts` |
+
+## Revisión general (RED → GREEN)
+| Arreglo | RED | GREEN |
+|---|---|---|
+| `HEAD` en feed y audio; `<link>` a la web | `405 == 200`; `'http://localhost:8000' == 'https://podcast.scuda.es'` | 140 passed |
+| Solo Apple Podcasts y Pocket Casts | 1 failed (`podcastApps`) | 31 passed |
+| Duración 5 o 10 min | `DID NOT RAISE` (20 aceptado) | 141 passed |
+| Solo `es`/`en` (y la importación ignora otros) | 2 failed | 143 passed |
+| Votos guardados en el detalle | `KeyError: 'votes'` | 144 passed |
+
+Migraciones de datos probadas con una fila temporal dentro de una transacción revertida (20 → 10, `fr` → `en`). Puntos de importancia: Lighthouse móvil `target-size` en verde (accesibilidad 100).
