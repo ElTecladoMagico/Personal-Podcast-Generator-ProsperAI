@@ -66,3 +66,15 @@
 - [ ] Nunca se generan dos episodios simultáneos para un usuario ni ejecuciones duplicadas.
 - [ ] El RSS funciona en al menos 2 apps reales.
 - [ ] Los audios de más de 30 días se borran y el episodio sigue visible con su transcripción.
+
+## Notas de implementación (2026-10-02)
+- **Sin APScheduler:** un hilo `daemon` de la biblioteca estándar (`jobs.schedule_forever`) que cada **60 s** llama a `enqueue_due` y `cleanup_audio`. La consulta es barata e indexada; un minuto hace que el episodio empiece casi a su hora (con 10 min podía empezar 10 min tarde). Sin dependencia nueva ni job de las 04:00: la limpieza es otra consulta en el mismo tic.
+- **Sin `FOR UPDATE SKIP LOCKED`:** hay un solo proceso (ADR 0010). El `next_run_at` se avanza y se confirma **antes** de crear el episodio (nunca se repite un hueco), y el índice único parcial ya impide dos episodios a la vez (`IntegrityError` → se salta). Marcado con `ponytail:` en el código con el camino de mejora.
+- **Sin capítulos JSON (`podcast:chapters`):** YAGNI; el feed funciona en cualquier app sin ellos. Se añaden si se quieren capítulos en Pocket Casts.
+- **Un solo fichero para el feed** (`routers/feeds.py`, ElementTree) en lugar de `rss.py` + router. Título y descripción en el idioma del oyente.
+- **`/me` devuelve `next_episode_at`** (la hora a la que estará listo) en vez de `next_run_at`: los 20 min de antelación se quedan en el backend y el frontend solo formatea ("Próximo episodio: sábado, 07:00", en la zona del oyente).
+- **`audio_url()`** en `storage.py`, compartido por el detalle del episodio y el feed.
+- **Portada:** `scripts/make_cover.py` con `uv run --with pillow` (Pillow no entra en las dependencias), 3000×3000, 112 KB, servida en `/static/cover.png`.
+- **Verificación local:** Home muestra el próximo episodio; Ajustes → copiar, enlaces de Apple Podcasts/Overcast/Pocket Casts correctos, "Regenerar enlace" con confirmación → el enlace viejo da 404 y el nuevo devuelve el feed. 390 px sin scroll horizontal; Lighthouse móvil de Ajustes: accesibilidad 97 (el único fallo, `target-size`, son los puntos de importancia de la rama 8; arreglarlo exige rediseñar el chip), buenas prácticas 100, SEO 100.
+- **Pendiente:** verificación en producción (suscripción real en Apple Podcasts y Pocket Casts, episodio programado que llega solo, validador de feeds).
+- Informe TDD: [`docs/testing/10-scheduler-rss.tdd.md`](../testing/10-scheduler-rss.tdd.md).
