@@ -83,3 +83,14 @@
 ## Riesgos
 - **`AnalyserNode` + CORS:** si el audio no tiene CORS, el analizador da ceros → verificar las cabeceras en `/audio`; *fallback*: animación procedural sin analizador.
 - **Rendimiento:** re-renderizar la transcripción a 60 fps → separar el componente de la palabra activa y memoizar los turnos.
+
+## Notas de implementación (2026-10-02)
+- **Orbe sin `AnalyserNode`:** un gradiente CSS que late (`motion-safe:animate-pulse`) mientras suena. Evita CORS en `/audio` y un `AudioContext` que en Safari exige gesto; *ponytail:* si se quiere reactividad real, `AnalyserNode` sobre el mismo `<audio>`.
+- **Móvil sin hoja inferior:** la transcripción va debajo y los controles (barra de capítulos + transporte) quedan **fijos abajo** (`max-lg:fixed`, con `safe-area-inset`). La hoja desplegable no aportaba más que eso.
+- **Sin librería de animación:** `tw-animate-css` (ya instalado) para la entrada de la tarjeta; todo respeta `prefers-reduced-motion`.
+- **Transcripción:** turnos memoizados (`TurnRow`); solo se re-renderiza el turno activo. Un único `onClick` por turno con `data-t` en cada palabra (antes, 359 `role="button"` que el lector de pantalla anunciaba uno a uno); el teclado busca por turno con el botón del presentador. Autoscroll en pausa 4 s tras un scroll manual.
+- **Saltos:** "Saltar historia", Shift+→ y "siguiente" del sistema siempre registran `chapter_skipped`; un *scrub* hacia delante solo si cruza más de medio capítulo (`isSkip`). Verificación encontró que el botón, cerca del final del capítulo, no lo registraba → corregido.
+- **`Source.story_id`** en la API para mostrar en cada tarjeta solo sus fuentes ("Leer en…").
+- **Verificación real (local, episodio de 2:13):** palabra resaltada sincronizada ("viernes." a 2,28 s; "cambiar" al saltar al capítulo 2); clic en palabra → seek a su `start` (13,35 s → 13,58 s); tabla `events`: `play_started` → `chapter_started` ×4 → `feedback {up, s2}` → `chapter_skipped {s1, after_s: 2}` → `listen_progress {max_position_s: 133}`. 390 px sin scroll horizontal. Lighthouse (móvil): accesibilidad 100, buenas prácticas 100, SEO 100 (tras subir el contraste de los turnos inactivos, `h3→h2`, nombre accesible de la velocidad con "1×" y `robots.txt`).
+- **Pendiente fuera de alcance:** Safari/Firefox y pantalla de bloqueo del móvil (Media Session) solo probados en Chrome.
+- Informe TDD: [`docs/testing/09-player.tdd.md`](../testing/09-player.tdd.md).
