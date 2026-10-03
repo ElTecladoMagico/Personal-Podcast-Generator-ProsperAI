@@ -13,12 +13,19 @@ describe('podcastApps', () => {
 })
 
 describe('nextEpisodeLabel', () => {
-  it('shows the weekday and time in the listener’s time zone', () => {
-    expect(nextEpisodeLabel('2026-10-03T05:00:00Z', 'Europe/Madrid', 'es')).toBe('sábado, 07:00')
-    expect(nextEpisodeLabel('2026-10-03T05:00:00Z', 'America/New_York', 'en')).toBe('Saturday 01:00')
+  const NOW = new Date('2026-10-03T00:30:00Z') // Saturday 02:30 in Madrid, Friday 20:30 in New York
+
+  it('says today or tomorrow in the listener’s time zone', () => {
+    expect(nextEpisodeLabel('2026-10-03T05:00:00Z', 'Europe/Madrid', 'es', NOW)).toBe('hoy, 07:00')
+    expect(nextEpisodeLabel('2026-10-04T05:00:00Z', 'Europe/Madrid', 'es', NOW)).toBe('mañana, 07:00')
+    expect(nextEpisodeLabel('2026-10-03T05:00:00Z', 'America/New_York', 'en', NOW)).toBe('tomorrow, 01:00')
+  })
+
+  it('uses the weekday further ahead', () => {
+    expect(nextEpisodeLabel('2026-10-06T05:00:00Z', 'Europe/Madrid', 'es', NOW)).toBe('martes, 07:00')
   })
 
   it('is null when there is no schedule', () => {
-    expect(nextEpisodeLabel(null, 'Europe/Madrid', 'es')).toBeNull()
+    expect(nextEpisodeLabel(null, 'Europe/Madrid', 'es', NOW)).toBeNull()
   })
 })
