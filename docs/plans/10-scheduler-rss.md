@@ -89,3 +89,8 @@ Revisión crítica de lo construido en las ramas 2–10. Arreglado, cada punto c
 - **👍/👎:** el detalle del episodio devuelve `votes` (último voto por historia), y el reproductor los muestra tras recargar.
 
 Revisado y sin cambios: el feedback y los saltos sí llegan al editor (`feedback_by_interest`); pesos, temas a evitar, medios de confianza, tono y profundidad sí llegan a fuentes, editor y guionista. Riesgos conocidos que se documentan en `solution.md`: el resolutor de Google News (frágil, términos de uso), Clerk en modo desarrollo, y que "Generar ahora" justo antes de la hora programada salta el programado de ese día (intencionado: evita dos episodios casi iguales).
+
+## E2E en producción y ajustes (2026-10-03)
+- **Verificado en producción** con la cuenta de prueba: onboarding → primer episodio en ~90 s → reproductor; programado a las 02:20 → a las **02:00** el programador lo lanzó solo, listo a las 02:01:41 y publicado en el feed; el segundo episodio **no repitió historias** del primero (memoria). Feed: `feedparser` sin errores, `HEAD` y `Range` correctos; rotación del enlace correcta. La cuenta de prueba queda en "Solo cuando lo pida".
+- **Sello "Powered by Netlify"** (proyectos gratuitos creados desde el 19/08/2026) tapaba los botones del pie fijo y la barra del reproductor en móvil → desactivado en *Project configuration → General*.
+- **Arreglos (rama `fix/polish`):** el inicio de sesión de Clerk sigue el idioma de la app (`@clerk/localizations`); "Próximo episodio: **hoy**/**mañana**, 07:00" (`Intl.RelativeTimeFormat`); el guionista recibe la hora local del oyente para que el saludo encaje ("buenas noches" a las 23:00); una fuente caída deja una sola línea en el log (la traza completa solo si es un fallo nuestro).

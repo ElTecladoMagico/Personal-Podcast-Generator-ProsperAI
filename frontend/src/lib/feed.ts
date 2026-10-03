@@ -11,10 +11,18 @@ export function podcastApps(feedUrl: string) {
   ]
 }
 
-/** "sábado, 07:00" in the listener's own time zone, or null when it's on demand only. */
-export function nextEpisodeLabel(at: string | null | undefined, timeZone: string, lang: string): string | null {
+/** "hoy, 07:00" / "mañana, 07:00" / "martes, 07:00" in the listener's time zone, or null when
+ * it's on demand only. */
+export function nextEpisodeLabel(
+  at: string | null | undefined, timeZone: string, lang: string, now: Date = new Date(),
+): string | null {
   if (!at) return null
-  return new Date(at).toLocaleString(lang, { weekday: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone })
+  const when = new Date(at)
+  const day = (d: Date) => Date.parse(d.toLocaleDateString('en-CA', { timeZone })) // local YYYY-MM-DD
+  const daysAway = Math.round((day(when) - day(now)) / 86_400_000)
+  const time = when.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone })
+  if (daysAway <= 1) return `${new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(daysAway, 'day')}, ${time}`
+  return `${when.toLocaleDateString(lang, { weekday: 'long', timeZone })}, ${time}`
 }
 
 export function useRotateFeedToken() {

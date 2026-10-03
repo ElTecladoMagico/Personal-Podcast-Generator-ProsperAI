@@ -112,6 +112,7 @@ def writer_input(
         "listener": listener,
         "today": today.date().isoformat(),
         "weekday": today.strftime("%A"),
+        "local_time": today.strftime("%H:%M"),  # so the greeting fits the hour
         "frequency": prefs.schedule.frequency,
         "target_chars": minutes * CHARS_PER_MINUTE,
         "stories": [
