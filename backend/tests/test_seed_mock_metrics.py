@@ -12,7 +12,9 @@ TODAY = date(2026, 10, 2)
 
 def counts() -> tuple[int, int, int]:
     with Session(engine) as s:
-        return tuple(s.exec(select(func.count()).select_from(t)).one() for t in (User, Episode, Event))
+        return tuple(
+            s.exec(select(func.count()).select_from(t)).one() for t in (User, Episode, Event)
+        )
 
 
 def test_seed_is_deterministic_mock_only_and_leaves_real_users_alone():

@@ -78,10 +78,12 @@ SELECT d.day::text AS day,
 FROM days d ORDER BY d.day"""
 )
 
+# MAU, and the listener-days behind the average DAU of the same 28 days (for DAU/MAU).
 MAU = (
     with_(SCOPED, ACTIVE)
     + """
-SELECT count(DISTINCT user_id) AS mau FROM active WHERE day > CAST(:last_day AS date) - 28"""
+SELECT count(DISTINCT user_id) AS mau, count(*) AS listener_days
+FROM active WHERE day > CAST(:last_day AS date) - 28"""
 )
 
 # The listeners who signed up in the range, step by step to their first full listen.
@@ -258,7 +260,7 @@ def dashboard(today: date, days: int, include_mock: bool) -> dict:
         def rows(sql: str) -> list[dict]:
             return [dict(r) for r in session.execute(text(sql), params).mappings()]
 
-        daily, mau = rows(DAILY_GROWTH), rows(MAU)[0]["mau"]
+        daily, month = rows(DAILY_GROWTH), rows(MAU)[0]
         funnel, features = rows(FUNNEL)[0], rows(FEATURES)[0]
         completions = [r["completion"] for r in rows(COMPLETION)]
         stages = {r["stage"]: r for r in rows(STAGES_SQL)}
@@ -279,8 +281,8 @@ def dashboard(today: date, days: int, include_mock: bool) -> dict:
         "range": {"first_day": first_day.isoformat(), "last_day": today.isoformat(), "days": days},
         "include_mock": include_mock,
         "kpis": {
-            "mau": mau,
-            "stickiness": ratio(sum(d["dau"] for d in daily) / len(daily), mau),
+            "mau": month["mau"],
+            "stickiness": ratio(month["listener_days"] / 28, month["mau"]),
             "activation": ratio(funnel["activated"], funnel["signed_up"]),
             "completion": ratio(sum(completions), len(completions)),
             "thumbs_up": ratio(features["ups"], features["ups"] + features["downs"]),

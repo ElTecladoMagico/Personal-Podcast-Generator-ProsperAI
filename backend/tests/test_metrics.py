@@ -132,7 +132,8 @@ def test_growth_counts_signups_and_listeners_per_day():
 def test_kpis():
     k = real()["kpis"]
     assert k["mau"] == 2 and k["activation"] == 0.25  # only Ana, within 48 h of signing up
-    assert k["stickiness"] == pytest.approx((3 / 7) / 2)
+    # DAU/MAU: average daily actives of the last 28 days (3 listener-days: Ana ×2, Bea) ÷ MAU
+    assert k["stickiness"] == pytest.approx((3 / 28) / 2)
     assert k["completion"] == pytest.approx((0.9 + 0.25) / 2)
     assert k["thumbs_up"] == 0.5
     assert k["cost_per_episode"] == pytest.approx(0.03 + 1500 * metrics.TTS_USD_PER_CHAR)
