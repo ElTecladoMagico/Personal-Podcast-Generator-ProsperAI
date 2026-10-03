@@ -1,9 +1,10 @@
 import { useAuth } from '@clerk/react'
-import type { ReactNode } from 'react'
+import { lazy, type ReactNode, Suspense } from 'react'
 import { BrowserRouter, Link, Navigate, Outlet, Route, Routes } from 'react-router'
 import { AppShell } from '@/components/AppShell'
 import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useMe } from '@/lib/api'
 import { useT } from '@/lib/i18n'
 import Home from '@/pages/Home'
@@ -11,6 +12,9 @@ import Landing from '@/pages/Landing'
 import Episode from '@/pages/Episode'
 import Onboarding from '@/pages/Onboarding'
 import Settings from '@/pages/Settings'
+
+// Charts (Recharts) only load for admins, on /admin.
+const Admin = lazy(() => import('@/pages/Admin'))
 
 export default function App() {
   return (
@@ -56,12 +60,12 @@ function AdminOnly() {
   const { data: me } = useMe()
   if (!me) return null
   // UI gate only; the API enforces the admin role on /admin/* itself.
-  return me.is_admin ? <Placeholder title="page.admin" /> : <NotFound />
-}
-
-function Placeholder({ title }: { title: Parameters<ReturnType<typeof useT>['t']>[0] }) {
-  const { t } = useT()
-  return <h1 className="text-4xl">{t(title)}</h1>
+  if (!me.is_admin) return <NotFound />
+  return (
+    <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+      <Admin />
+    </Suspense>
+  )
 }
 
 function NotFound() {

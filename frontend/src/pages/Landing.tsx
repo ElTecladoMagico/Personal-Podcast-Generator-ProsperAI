@@ -1,6 +1,6 @@
 import { SignInButton, SignUpButton } from '@clerk/react'
 import type { CSSProperties } from 'react'
-import { BellRing, MessageCircleQuestion, Sparkles } from 'lucide-react'
+import { BellRing, ShieldCheck, Sparkles } from 'lucide-react'
 import { LanguageMenu, ThemeToggle } from '@/components/AppShell'
 import { Logo } from '@/components/Logo'
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,7 @@ export default function Landing() {
   const benefits = [
     { icon: Sparkles, title: t('landing.benefit1.title'), body: t('landing.benefit1.body') },
     { icon: BellRing, title: t('landing.benefit2.title'), body: t('landing.benefit2.body') },
-    { icon: MessageCircleQuestion, title: t('landing.benefit3.title'), body: t('landing.benefit3.body') },
+    { icon: ShieldCheck, title: t('landing.benefit3.title'), body: t('landing.benefit3.body') },
   ]
 
   return (

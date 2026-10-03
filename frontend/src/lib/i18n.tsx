@@ -21,9 +21,9 @@ const en = {
   'landing.benefit2.title': 'Arrives on its own',
   'landing.benefit2.body':
     'A fresh episode on your schedule, in the web player or your favorite podcast app via a private feed.',
-  'landing.benefit3.title': 'Ask the hosts',
+  'landing.benefit3.title': 'Fact-checked',
   'landing.benefit3.body':
-    'Something unclear? Pause, ask a question and the hosts answer you out loud, with sources.',
+    'Every fact comes from an article you can open, and a fact-checker removes what the sources don’t back up.',
   'landing.demo.date': 'Tuesday briefing',
   'landing.demo.title': 'Chips, chatbots and a late winner',
   'landing.demo.ch1': 'Good morning, Ana',
@@ -184,9 +184,9 @@ const es: Record<Key, string> = {
   'landing.benefit2.title': 'Llega solo',
   'landing.benefit2.body':
     'Un episodio nuevo a la hora que elijas, en el reproductor web o en tu app de podcasts con un feed privado.',
-  'landing.benefit3.title': 'Pregunta a los presentadores',
+  'landing.benefit3.title': 'Con fuentes',
   'landing.benefit3.body':
-    '¿Algo no quedó claro? Pausa, pregunta y te responden en voz alta, con fuentes.',
+    'Cada dato sale de un artículo que puedes abrir, y un verificador quita lo que las fuentes no respaldan.',
   'landing.demo.date': 'Resumen del martes',
   'landing.demo.title': 'Chips, chatbots y un gol en el descuento',
   'landing.demo.ch1': 'Buenos días, Ana',

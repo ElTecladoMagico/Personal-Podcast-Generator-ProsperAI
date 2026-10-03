@@ -67,3 +67,16 @@
 - [ ] Todas las métricas de la tabla visibles, con su definición.
 - [ ] Responde en < 1 s con el seed completo.
 - [ ] Solo accesible para admins (verificado en el backend).
+
+## Notas de implementación (2026-10-03)
+- **Una página, tres secciones** (Crecimiento y hábito · Contenido · Operación) en vez de pestañas, más la fila de KPIs (MAU, DAU/MAU, activación, escucha completa, 👍 y coste por episodio). Cada panel tiene su "por qué importa" y la definición exacta en un ⓘ. En inglés: es una herramienta interna y la leen los evaluadores.
+- **Recortado (ponytail):** las métricas de "Preguntar" (rama 11 descartada); el paso "vuelve entre el día 7 y el 13" del embudo (lo mide la retención semanal); las mini series y deltas de las tarjetas; la "calidad factual" por turnos (se usa lo que guarda `episode_ready`: episodios con avisos, avisos encontrados y corregidos).
+- **`app/metrics.py`:** consultas SQL legibles con CTE compartidas (`scoped`, `active`, `listens`…); `GET /admin/metrics?days=7|30|90&include_mock=` detrás de `require_admin`. Sin caché: con el seed completo responde en ~130 ms (90 días).
+- **DAU/MAU** = media de DAU de los últimos 28 días ÷ MAU (al principio se calculó sobre todo el rango y daba un valor engañosamente bajo; corregido con su test).
+- **Coste:** LLM real + caracteres de voz × 22 USD/100k (plan Creator de ElevenLabs). Resultado: **~1,5 USD por episodio de 5–10 min, casi todo TTS**; el LLM ronda 0,03–0,09 USD.
+- **Seed (`scripts/seed_mock_metrics.py`):** 200 oyentes × 90 días con semilla fija; altas crecientes, compromiso que se desvanece (retención ≈ 67 % → 49 % en la semana 1 → 15 % en la 8), 3 % de fallos por etapa, saltos más probables en temas de poco peso y en historias tardías, un tercio escucha por RSS. Inserción masiva con Core (~2 s).
+- **Recharts** solo en `/admin` (carga diferida): 116 KB gzip que el resto de usuarios no descargan. El embudo, los saltos y las etapas son barras CSS (más legibles y sin librería).
+- **Comprobaciones manuales:** "solo datos reales" → MAU 1 y 0,48 USD por episodio, coherente con un episodio real de 2 min (2.207 caracteres × 0,00022 + 0,028 USD de LLM); la cohorte del 31/08 con 0 % desde la semana 1 se comprobó contra los eventos en bruto (5 usuarios simulados poco activos, no un error).
+- **Revisión:** 390 px sin scroll horizontal; Lighthouse móvil accesibilidad **100** (tras limitar la intensidad del mapa de calor por contraste); tema claro y oscuro. El logo se partía en dos líneas con el icono de Admin → `whitespace-nowrap`.
+- **Landing:** la tarjeta "Pregunta a los presentadores" (rama 11, no construida) se sustituye por "Con fuentes" (verificación de hechos), que sí existe.
+- Informe TDD: [`docs/testing/12-admin-dashboard.tdd.md`](../testing/12-admin-dashboard.tdd.md).
