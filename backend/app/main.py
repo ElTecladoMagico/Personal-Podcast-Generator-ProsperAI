@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app import jobs
 from app.config import settings
-from app.routers import audio, episodes, events, feeds, me, voices
+from app.routers import admin, audio, episodes, events, feeds, me, voices
 
 
 @asynccontextmanager
@@ -35,6 +35,7 @@ app.include_router(episodes.router)
 app.include_router(voices.router)
 app.include_router(events.router)
 app.include_router(feeds.router)
+app.include_router(admin.router)
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 
 
