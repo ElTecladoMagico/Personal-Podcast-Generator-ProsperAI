@@ -46,15 +46,13 @@ def dataset():
             return u
 
         def episode(u, created, **fields):
-            ep = Episode(
-                user_id=u.id,
-                trigger="manual",
-                language="es",
-                prefs_snapshot={},
-                created_at=created,
-                work=PICKS,
-                **fields,
-            )
+            fields = {
+                "trigger": "manual",
+                "language": "es",
+                "prefs_snapshot": {},
+                "work": PICKS,
+            } | fields
+            ep = Episode(user_id=u.id, created_at=created, **fields)
             s.add(ep)
             s.flush()
             return ep
