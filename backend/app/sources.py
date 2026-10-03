@@ -251,11 +251,14 @@ def gather_candidates(
 
     def run(job: tuple[str, Fetcher]) -> list[Candidate]:
         topic, fetch = job
+        name = getattr(fetch, "func", fetch).__name__  # partial() hides the name
         try:
             return fetch(topic, since)
-        except Exception:  # one source down must never sink the episode
-            log.warning("source failed for %r", topic, exc_info=True)
-            return []
+        except httpx.HTTPError as err:  # an outage or a slow API: expected, one line is enough
+            log.warning("%s failed for %r: %s: %s", name, topic, type(err).__name__, err)
+        except Exception:  # anything else is our bug: keep the traceback
+            log.warning("%s failed for %r", name, topic, exc_info=True)
+        return []  # one source down must never sink the episode
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         results = list(pool.map(run, jobs))

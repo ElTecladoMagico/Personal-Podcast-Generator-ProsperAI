@@ -231,3 +231,20 @@ def test_dedupe_across_sources_and_cap(monkeypatch):
     assert len(items) == 6  # the second source repeats the first one
     monkeypatch.setattr(sources, "MAX_CANDIDATES", 4)
     assert len(gather_candidates(prefs(), SINCE, fetchers=[fake_source("gn")])) == 4
+
+
+def test_a_source_timing_out_logs_one_line_but_a_bug_keeps_its_traceback(caplog):
+    import httpx
+
+    def fetch_slow(topic, since):
+        raise httpx.ReadTimeout("The read operation timed out")
+
+    def fetch_buggy(topic, since):
+        raise KeyError("oops")
+
+    gather_candidates(prefs(), SINCE, fetchers=[fetch_slow, fetch_buggy])
+    slow = [r for r in caplog.records if "fetch_slow" in r.getMessage()]
+    buggy = [r for r in caplog.records if "fetch_buggy" in r.getMessage()]
+    assert slow and all(r.exc_info is None for r in slow)  # expected outage: no traceback
+    assert "ReadTimeout" in slow[0].getMessage()
+    assert buggy and all(r.exc_info for r in buggy)  # our bug: full traceback
