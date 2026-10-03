@@ -12,6 +12,7 @@
     "gen:api": "npx -y openapi-typescript@7 http://localhost:8000/openapi.json -o src/lib/api-types.ts"
   },
   "dependencies": {
+    "@clerk/localizations": "^4.21.2",
     "@clerk/react": "^6.17.4",
     "@clerk/ui": "^1.38.0",
     "@fontsource-variable/geist": "^5.3.0",
