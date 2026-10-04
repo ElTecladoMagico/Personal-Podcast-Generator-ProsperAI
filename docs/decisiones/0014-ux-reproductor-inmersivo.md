@@ -28,3 +28,9 @@ Mientras escuchas, pulsas "Preguntar" y escribes o dices: *"¿y esto cómo afect
 ## Alternativas descartadas
 - Portada con IA generativa de imagen: lenta y cara por episodio, y la CSS luce casi igual.
 - App nativa o PWA instalable: el producto es solo web. La Media Session API da los controles del sistema sin instalar nada.
+
+## Revisión durante la implementación (2026-10-02 → 04)
+- **Fondo:** un orbe CSS que late mientras suena, en vez de un `AnalyserNode` (evita CORS en el audio y el `AudioContext`, que Safari bloquea sin gesto).
+- **Móvil:** la transcripción va debajo y los controles quedan fijos abajo, en vez de una hoja desplegable.
+- **"Pregunta a los presentadores"** (rama 11): botón en la tarjeta de la historia en curso y en los controles; pausa, hoja con sugerencias, respuesta con las voces del episodio a partir de las fuentes de esa historia, y el episodio sigue 2 s antes. Sin dictado por voz (escribir o elegir una sugerencia lo cubre). **Latencia medida: 8,5–12,7 s** (más que los 5–10 s previstos; casi todo es la voz) y ~0,06–0,09 USD por respuesta. Límite de 10 por episodio y hora.
+- Los 👍/👎 se guardan como eventos y el editor del siguiente episodio los tiene en cuenta; el reproductor los vuelve a mostrar al recargar.
