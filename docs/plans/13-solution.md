@@ -42,3 +42,13 @@
 4. **`docs: README with local setup`**.
 5. **`docs: explanation guide for the author`**.
 6. **`docs: mark all plans done`**.
+
+## Notas de implementación (2026-10-04)
+- **`sample.mp3`:** 2 candidatos en inglés de 10 min (dúo, Sarah y George) con `scripts/sample_prefs_en.json`; elegido provisionalmente "Smarter AI, Moon Plans and a Rain-Soaked Grand Prix" (10:38, 5 historias, 0 avisos del verificador, 0,08 USD de LLM + 10.459 caracteres) leyendo los guiones; **pendiente de escucha del autor** (el otro: "AI Warnings, a Flying Ferry, and Singapore After Dark", 11:30). Guion con fuentes numeradas en `docs/sample-transcript.md`.
+- **`sample-es.mp3`** (decisión del autor: inglés + castellano): los dos candidatos en castellano quedaron escritos y verificados, pero **la grabación falló por `quota_exceeded` de la key de ElevenLabs** (afecta también a producción). Se reanudan solo en `recording` con `generate_episode_cli --resume <id>` cuando haya cuota: `54639a6d-…` y `f07fea3a-…`.
+- **ADRs al día** con lo construido: 0010 (hilo programador en vez de APScheduler), 0011 (`HEAD`, Pocket Casts, sin Overcast), 0014 (orbe CSS, barra fija en móvil, "Preguntar" y su latencia real), 0015 (solo `es`/`en`).
+- **Diagrama** regenerado con archify (etiquetas reales: hilo cada 60 s, proxy *edge*, "ask", Pocket Casts) y exportado a PNG sin la barra de herramientas del visor. Un cruce menor de dos flechas junto al pipeline; una reubicación no lo mejoró y se mantuvo la disposición original.
+- **Capturas** (UI en inglés, contenido en castellano) en `docs/img/` para el recorrido de `solution.md`.
+- **Revisión de seguridad:** todos los endpoints privados piden JWT de Clerk, rol admin o el token de feed revocable; solo `/health` y `/voices` son públicos; sin claves en el repositorio (`git grep`) y los `.env` ignorados; límites activos en `/episodes` (5/día), `/ask` (10/hora) y `/events` (2 KB).
+- **Arreglo encontrado al hacer las capturas:** las fechas de los episodios salían en el idioma del navegador, no en el de la app → `episodeDate(iso, lang)` con su test.
+- **Pendiente del autor:** escuchar y confirmar los samples, subir la cuota de ElevenLabs, decidir sobre la instancia de producción de Clerk (documentado como limitación).

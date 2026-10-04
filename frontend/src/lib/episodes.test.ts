@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { coverSeed, greetingKey, isTerminal, STAGES, stageStates } from './episodes'
+import { coverSeed, episodeDate, greetingKey, isTerminal, STAGES, stageStates } from './episodes'
 
 describe('stageStates', () => {
   it('marks earlier stages done, the current one active and the rest pending', () => {
@@ -50,5 +50,12 @@ describe('coverSeed', () => {
     expect(a).toBe(coverSeed('3268378b-ee44-4dd0-8606-2a2d23923cbd'))
     expect(a).not.toBe(coverSeed('f2fe6140-149c-4cee-a8eb-d0cecf65cf75'))
     expect(a).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('episodeDate', () => {
+  it('speaks the app’s language, not the browser’s', () => {
+    expect(episodeDate('2026-10-04T05:00:00Z', 'en')).toBe('Sunday, October 4')
+    expect(episodeDate('2026-10-04T05:00:00Z', 'es')).toBe('domingo, 4 de octubre')
   })
 })

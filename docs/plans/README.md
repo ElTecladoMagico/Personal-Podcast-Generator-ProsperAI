@@ -30,7 +30,7 @@ Esta carpeta es la **fuente de verdad para ejecutar el proyecto**. Si se pierde 
 | 10 | `feat/scheduler-rss` | [10](10-scheduler-rss.md) | 6, 8 | ✅ |
 | 11 | `feat/ask-hosts` | [11](11-ask-hosts.md) | 9 | ✅ (después de la 12) |
 | 12 | `feat/admin-dashboard` | [12](12-admin-dashboard.md) | 9, 10 | ✅ |
-| 13 | `docs/solution` | [13](13-solution.md) | todas | ⏳ |
+| 13 | `docs/solution` | [13](13-solution.md) | todas | ✅ (falta `sample-es.mp3`: cuota de ElevenLabs) |
 
 Desplegamos al final de la rama 3 y **después de cada merge** a partir de ahí (runbook en `deploy/README.md`, creado en la rama 3).
 

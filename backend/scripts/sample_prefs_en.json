@@ -1,0 +1,16 @@
+{
+  "interests": [
+    {"topic": "artificial intelligence and LLMs", "why": "I build software products", "weight": 5},
+    {"topic": "Formula 1", "weight": 4},
+    {"topic": "space exploration", "weight": 3},
+    {"topic": "climate tech startups", "weight": 3}
+  ],
+  "avoid": ["celebrity gossip", "horoscopes"],
+  "language": "en",
+  "tone": "casual",
+  "depth": "analysis",
+  "hosts": [
+    {"name": "Sarah", "voice_id": "EXAVITQu4vr4xnSDxMaL"},
+    {"name": "George", "voice_id": "JBFqnCBsd6RMkjVDRZzb"}
+  ]
+}

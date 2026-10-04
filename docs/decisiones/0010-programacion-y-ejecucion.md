@@ -1,4 +1,4 @@
-# 0010 · Programación y ejecución: APScheduler + tareas en el propio proceso
+# 0010 · Programación y ejecución: un hilo programador + pool de hilos en el propio proceso
 
 **Estado:** Aceptada
 
@@ -27,3 +27,8 @@ El ADR proponía SSE. Se cambia a polling porque `EventSource` no permite la cab
 
 ## Revisar si
 Hay más de una instancia del backend. Entonces: `FOR UPDATE SKIP LOCKED` en la tabla `episodes` (Postgres como cola) antes que añadir Redis.
+
+## Revisión durante la implementación (2026-10-02): sin APScheduler
+- **Un hilo de la biblioteca estándar** (`jobs.schedule_forever`) sustituye a APScheduler: cada **60 s** llama a `enqueue_due` y `cleanup_audio`. Para un único job periódico, APScheduler no aportaba nada que no hagan diez líneas, y con 60 s el episodio empieza casi a su hora (con 10 min podía empezar 10 min tarde).
+- **Sin `FOR UPDATE SKIP LOCKED`** mientras haya un solo proceso: `next_run_at` se avanza y se confirma antes de crear el episodio (un hueco nunca se repite) y el índice único parcial `ix_episodes_one_active_per_user` impide dos episodios a la vez por usuario (en "Generar ahora" y en el programador). Marcado con `ponytail:` en el código.
+- Verificado en producción: programado a las 02:20, el hilo lo lanzó a las 02:00 y estuvo listo a las 02:01:41.

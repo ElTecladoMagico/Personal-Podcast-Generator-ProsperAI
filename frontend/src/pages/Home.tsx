@@ -7,7 +7,7 @@ import { GenerationProgress } from '@/components/GenerationProgress'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ApiError, useMe } from '@/lib/api'
-import { type EpisodeSummary, greetingKey, isTerminal, useEpisode, useEpisodes, useGenerate } from '@/lib/episodes'
+import { episodeDate, greetingKey, isTerminal, useEpisode, useEpisodes, useGenerate } from '@/lib/episodes'
 import { nextEpisodeLabel } from '@/lib/feed'
 import { format, useT } from '@/lib/i18n'
 import { useQueryClient } from '@tanstack/react-query'
@@ -70,7 +70,7 @@ export default function Home() {
           <EpisodeCover id={latest.id} topics={live.data?.topics ?? latest.topics} className="w-32 md:w-full md:max-w-60" />
           <div className="min-w-0 space-y-4">
             <div>
-              <p className="text-xs tracking-widest text-muted-foreground uppercase">{dateLabel(latest)}</p>
+              <p className="text-xs tracking-widest text-muted-foreground uppercase">{episodeDate(latest.created_at, lang)}</p>
               <h2 className="text-3xl">
                 {live.data?.title ?? latest.title ?? (live.data?.status === 'failed' ? t('error.generic') : t('home.generating'))}
               </h2>
@@ -99,7 +99,7 @@ export default function Home() {
                   <EpisodeCover id={ep.id} topics={ep.topics} className="transition-transform duration-200 group-hover:scale-[1.02]" />
                   <p className="line-clamp-2 text-sm font-medium">{ep.title ?? (ep.status === 'failed' ? t('error.generic') : t('home.generating'))}</p>
                   <p className="text-xs text-muted-foreground">
-                    {dateLabel(ep)}
+                    {episodeDate(ep.created_at, lang)}
                     {ep.duration_s ? ` · ${Math.round(ep.duration_s / 60)} ${t('home.min')}` : ''}
                   </p>
                 </Link>
@@ -112,9 +112,6 @@ export default function Home() {
   )
 }
 
-function dateLabel(ep: EpisodeSummary) {
-  return new Date(ep.created_at).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })
-}
 
 function EmptyState() {
   const { t } = useT()
