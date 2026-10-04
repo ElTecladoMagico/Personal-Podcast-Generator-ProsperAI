@@ -26,6 +26,7 @@ ACTIVE_EVENTS = [
     "listen_progress",
     "feedback",
     "feed_download",
+    "ask_asked",
 ]
 COMPLETED = 0.8  # share of an episode that counts as "listened"
 ACTIVATION_HOURS = 48
@@ -164,6 +165,15 @@ SELECT
   (SELECT count(*) FROM ev WHERE type = 'feedback' AND props->>'value' = 'down') AS downs"""
 )
 
+ASK = (
+    with_(SCOPED, IN_RANGE_EVENTS)
+    + """
+SELECT count(*) AS questions, count(DISTINCT user_id) AS askers,
+  percentile_cont(0.5) WITHIN GROUP (ORDER BY (props->>'latency_s')::float) AS p50,
+  percentile_cont(0.95) WITHIN GROUP (ORDER BY (props->>'latency_s')::float) AS p95
+FROM ev WHERE type = 'ask_asked'"""
+)
+
 # --- Operations --------------------------------------------------------------------------
 
 DAILY_EPISODES = (
@@ -272,6 +282,7 @@ def dashboard(today: date, days: int, include_mock: bool) -> dict:
             "checker": rows(CHECKER)[0],
         }
         cost = rows(COST_PER_EPISODE)[0]["usd"]
+        asks = rows(ASK)[0]
 
     buckets = [0] * 10
     for c in completions:
@@ -311,6 +322,12 @@ def dashboard(today: date, days: int, include_mock: bool) -> dict:
             ],
             "rss_adoption": ratio(features["rss_users"], features["active_users"]),
             "import_share": ratio(features["imported"], features["onboarded"]),
+            "ask": {
+                "questions": asks["questions"],
+                "askers_share": ratio(asks["askers"], features["active_users"]),
+                "p50_latency_s": asks["p50"],
+                "p95_latency_s": asks["p95"],
+            },
         },
         "operations": {
             **ops,

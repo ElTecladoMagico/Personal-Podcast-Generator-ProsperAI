@@ -42,4 +42,5 @@ def test_seeded_data_fills_every_block_of_the_dashboard():
     assert k["mau"] > 10 and 0 < k["activation"] < 1 and 0 < k["completion"] < 1
     assert 0 < k["thumbs_up"] < 1 and k["cost_per_episode"] > 0
     assert d["growth"]["retention"] and d["content"]["topics"] and d["operations"]["stages"]
+    assert d["content"]["ask"]["questions"] > 0 and d["content"]["ask"]["p50_latency_s"] > 0
     assert metrics.dashboard(TODAY, days=30, include_mock=False)["kpis"]["mau"] == 0

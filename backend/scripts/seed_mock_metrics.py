@@ -38,6 +38,7 @@ FAILURE_STAGE = {"recording": 0.4, "fetching": 0.3, "writing": 0.15, "editing": 
                  "verifying": 0.05}  # fmt: skip
 FAILURE_RATE = 0.03
 FIRST_LISTEN = 0.75  # share who play the first episode they asked for
+ASKERS = 0.2  # listeners who ask the hosts at all; they ask in 30 % of their listens
 CHARS_PER_SECOND = 14  # what the voices read: ~8,500 characters for 10 minutes
 
 
@@ -101,15 +102,17 @@ def seed(users: int = 200, days: int = 90, rng_seed: int = 42, today: date | Non
         engagement = rng.betavariate(2, 3)  # how much this listener cares, 0..1
         half_life = rng.uniform(4, 30)  # days until their habit halves
         podcast_app = rng.random() < 0.35
+        ask_rate = 0.3 if rng.random() < ASKERS else 0.0
         # The first episode right after onboarding, then whatever their schedule says.
         add_episode(rng, rows, event, user_id, signed_up + timedelta(minutes=3), "manual",
-                    interests, rng.random() < FIRST_LISTEN, podcast_app)  # fmt: skip
+                    interests, rng.random() < FIRST_LISTEN, podcast_app, ask_rate)  # fmt: skip
         for offset in range(1, (today - signup_day).days + 1):
             day = signup_day + timedelta(days=offset)
             if runs_on(frequency, day, weekday):
                 habit = engagement * 0.5 ** (offset / half_life)
                 add_episode(rng, rows, event, user_id, datetime.combine(day, time(6, 40), UTC),
-                            "scheduled", interests, rng.random() < habit, podcast_app)  # fmt: skip
+                            "scheduled", interests, rng.random() < habit, podcast_app,
+                            ask_rate)  # fmt: skip
 
     with Session(engine) as s:
         for table, values in rows.items():
@@ -118,7 +121,7 @@ def seed(users: int = 200, days: int = 90, rng_seed: int = 42, today: date | Non
         s.commit()
 
 
-def add_episode(rng, rows, event, user_id, at, trigger, interests, listens, podcast_app):
+def add_episode(rng, rows, event, user_id, at, trigger, interests, listens, podcast_app, ask_rate):
     episode_id = uuid.UUID(int=rng.getrandbits(128))
     stories = [
         {"story_id": f"s{i + 1}", "interest": t["topic"]}
@@ -175,6 +178,10 @@ def add_episode(rng, rows, event, user_id, at, trigger, interests, listens, podc
         reached = position / len(stories)
         if rng.random() < 0.12:  # stopped listening here
             break
+    if rng.random() < ask_rate:  # paused to ask the hosts about one of the stories
+        latency = round(5 * rng.lognormvariate(0, 0.3), 2)  # ~5 s: LLM + voice
+        event(user_id, "ask_asked", t, episode_id, chapter_index=rng.randint(1, len(stories)),
+              latency_s=latency, chars=rng.randint(250, 450))  # fmt: skip
     completion = min(reached * rng.betavariate(8, 1.5), 1)
     event(user_id, "listen_progress", t + timedelta(seconds=duration * completion), episode_id,
           max_position_s=round(duration * completion), duration_s=round(duration))  # fmt: skip
