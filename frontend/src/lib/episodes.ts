@@ -71,3 +71,7 @@ function useEpisodeAction(path: (id?: string) => string) {
 
 export const useGenerate = () => useEpisodeAction(() => '/episodes')
 export const useRetry = () => useEpisodeAction((id) => `/episodes/${id}/retry`)
+
+/** "Sunday, October 4" / "domingo, 4 de octubre", in the app's language. */
+export const episodeDate = (iso: string, lang: string) =>
+  new Date(iso).toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long' })
