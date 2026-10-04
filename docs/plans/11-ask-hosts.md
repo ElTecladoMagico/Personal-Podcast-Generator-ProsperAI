@@ -52,3 +52,15 @@
 - [ ] La respuesta suena con las voces del episodio y se reanuda donde estaba.
 - [ ] Sin respuestas inventadas: si no está en las fuentes, se dice.
 - [ ] Límite de peticiones activo; eventos registrados con latencia.
+
+## Notas de implementación (2026-10-04)
+- **Recuperada tras descartarla en la 12** a petición del autor. Recortado (ponytail): el dictado por voz (escribir + 4 sugerencias lo cubre) y la burbuja insertada en la transcripción → las preguntas y respuestas de la sesión viven en una hoja inferior, con el turno que suena resaltado por proporción de caracteres (`activeTurn`).
+- **Backend (`app/pipeline/ask.py`):** `chapter_at` (en la intro o la despedida, la historia más cercana), contexto = turnos del capítulo + sus artículos (4.000 caracteres cada uno), `gpt-6-luna` con `prompts/ask.md`, limpieza con el mismo `clean_text` del guionista (≤ 600 caracteres), voz con el mismo `synthesize`, semilla del episodio (mismas voces) y ×1,1. Audio en `AUDIO_DIR/<user>/<episode>/ask-<qid>.mp3`, servido con el token del feed; la limpieza de 30 días borra también esa carpeta.
+- **`POST /episodes/{id}/ask`:** 404 ajeno, 409 no listo, 422 pregunta < 3 o > 300 caracteres, 429 a partir de 10 por episodio y hora, 502 si falla el LLM o la voz. Evento `ask_asked` con latencia, caracteres y coste del LLM (no se suma al coste del episodio, para no falsear esa métrica).
+- **Prueba real:** "¿Y esto cuándo llegaría a mi móvil?" → "No la dan. Bruselas aprobó las medidas el dieciséis de julio, pero Google las ha recurrido…" (fiel a la fuente); "¿Qué opina Apple?" → "La fuente no cuenta qué opina Apple. Sí recoge que…" (honesta). ~0,0003 USD de LLM + 200–400 caracteres de voz (≈ 0,06–0,09 USD).
+- **Latencia: 8,5–12,7 s** (objetivo del plan: < 8 s). La mayor parte es la voz (diálogo de eleven_v3); el estado "Dándole una vuelta…" la cubre. *ponytail:* empezar a reproducir por *streaming* o pedir la voz por turnos en paralelo si hiciera falta bajarla.
+- **Ajuste:** las dos primeras respuestas empezaban por "Buena pregunta" → el prompt pide variar la reacción.
+- **E2E en el navegador:** abrir la hoja pausa el episodio (11,6 s) → sugerencia → "Sara · Martín · Dándole una vuelta…" → la respuesta suena (22,8 s) con el turno activo resaltado → al acabar se cierra y el episodio sigue en 9,6 s (2 s antes). "Volver al episodio" también reanuda. 390 px sin scroll; Lighthouse móvil 100/100/100 con la hoja abierta.
+- **Dashboard:** "Ask the hosts" en *Feature adoption* (porcentaje de oyentes activos que preguntan, preguntas y latencia p50 · p95); `ask_asked` cuenta como actividad. El seed simula un 20 % de oyentes que preguntan, con la latencia medida (~10 s).
+- **Landing:** se mantiene "Con fuentes" (la verificación es el rasgo más diferencial); "Preguntar" se descubre en el reproductor.
+- Informe TDD: [`docs/testing/11-ask-hosts.tdd.md`](../testing/11-ask-hosts.tdd.md).

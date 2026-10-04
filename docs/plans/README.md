@@ -28,7 +28,7 @@ Esta carpeta es la **fuente de verdad para ejecutar el proyecto**. Si se pierde 
 | 8 | `feat/onboarding` | [08](08-onboarding.md) | 2, 6 | ✅ |
 | 9 | `feat/player` | [09](09-player.md) | 7 | ✅ |
 | 10 | `feat/scheduler-rss` | [10](10-scheduler-rss.md) | 6, 8 | ✅ |
-| 11 | `feat/ask-hosts` | [11](11-ask-hosts.md) | 9 | ✖ descartada (no la pide el enunciado; ver notas de la 12) |
+| 11 | `feat/ask-hosts` | [11](11-ask-hosts.md) | 9 | ✅ (después de la 12) |
 | 12 | `feat/admin-dashboard` | [12](12-admin-dashboard.md) | 9, 10 | ✅ |
 | 13 | `docs/solution` | [13](13-solution.md) | todas | ⏳ |
 
