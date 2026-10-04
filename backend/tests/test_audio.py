@@ -52,15 +52,27 @@ def mean_volume(path, start: float, seconds: float) -> float:
     return float(out.split("mean_volume:")[1].split("dB")[0])
 
 
-def test_assemble_adds_pauses_evens_out_loudness_and_speeds_up(tmp_path):
-    from app.audio import assemble
+def integrated_lufs(path) -> float:
+    out = subprocess.run(
+        ["ffmpeg", "-hide_banner", "-i", str(path), "-af", "ebur128", "-f", "null", "-"],
+        capture_output=True, text=True, check=True,
+    ).stderr  # fmt: skip
+    return float(out.rsplit(" I:", 1)[1].split("LUFS")[0])
+
+
+def test_assemble_adds_pauses_keeps_each_chunk_and_sets_podcast_loudness(tmp_path):
+    from app.audio import LOUDNESS_LUFS, assemble
 
     loud, quiet, out = tmp_path / "loud.mp3", tmp_path / "quiet.mp3", tmp_path / "out.mp3"
     tone(loud, 3, 440, volume=0.9)
-    tone(quiet, 3, 440, volume=0.15)  # ~15 dB quieter, like a host rendered softer by one request
+    tone(quiet, 3, 440, volume=0.15)  # ~15 dB quieter
     assemble([loud, quiet], [1.0, 0.0], out, speed=1.1)
 
     assert duration(out) == pytest.approx((3 + 1 + 3) / 1.1, abs=0.15)
-    first, second = mean_volume(out, 0.3, 2), mean_volume(out, 4.0 / 1.1 + 0.3, 2)
-    assert abs(first - second) < 1.5  # same loudness after the join
     assert mean_volume(out, 3.1 / 1.1, 0.6) < -60  # the pause is silence
+    # Chunks are NOT evened out one by one: a chunk mixes both hosts, so that would move the
+    # quieter host's level with every chapter (measured on sample.mp3). Only the whole episode
+    # is brought to podcast loudness.
+    first, second = mean_volume(out, 0.3, 2), mean_volume(out, 4.0 / 1.1 + 0.3, 2)
+    assert first - second == pytest.approx(15.6, abs=1.5)
+    assert integrated_lufs(out) == pytest.approx(LOUDNESS_LUFS, abs=1.0)
