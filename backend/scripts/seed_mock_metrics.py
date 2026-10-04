@@ -179,7 +179,7 @@ def add_episode(rng, rows, event, user_id, at, trigger, interests, listens, podc
         if rng.random() < 0.12:  # stopped listening here
             break
     if rng.random() < ask_rate:  # paused to ask the hosts about one of the stories
-        latency = round(5 * rng.lognormvariate(0, 0.3), 2)  # ~5 s: LLM + voice
+        latency = round(10 * rng.lognormvariate(0, 0.25), 2)  # ~10 s, as measured: LLM + voice
         event(user_id, "ask_asked", t, episode_id, chapter_index=rng.randint(1, len(stories)),
               latency_s=latency, chars=rng.randint(250, 450))  # fmt: skip
     completion = min(reached * rng.betavariate(8, 1.5), 1)
