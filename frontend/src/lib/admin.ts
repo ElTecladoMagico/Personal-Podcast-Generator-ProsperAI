@@ -26,6 +26,7 @@ export type Metrics = {
     topics: Topic[]
     rss_adoption: number | null
     import_share: number | null
+    ask: { questions: number; askers_share: number | null; p50_latency_s: number | null; p95_latency_s: number | null }
   }
   operations: {
     daily: { day: string; manual: number; scheduled: number; failed: number }[]
