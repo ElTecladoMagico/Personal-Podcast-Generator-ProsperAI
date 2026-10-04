@@ -6,7 +6,7 @@ podcast app. Built for the ProsperAI challenge.
 
 - **Live demo:** <https://podcast.scuda.es>
 - **Overview, architecture and decisions:** [`solution.md`](solution.md)
-- **Best episode:** [`sample.mp3`](sample.mp3) (English, [transcript with sources](docs/sample-transcript.md)) · [`sample-es.mp3`](sample-es.mp3) (Spain Spanish)
+- **Best episode:** [`sample.mp3`](sample.mp3) (English, [transcript with sources](docs/sample-transcript.md)) · [`sample-es.mp3`](sample-es.mp3) (Spain Spanish, 5 min, [transcript](docs/sample-transcript-es.md))
 - **Design records:** [`docs/decisiones/`](docs/decisiones/README.md) (ADRs) · [`docs/plans/`](docs/plans/README.md) (one plan per branch) · [`docs/testing/`](docs/testing) (TDD evidence) — in Spanish
 
 ## Repository

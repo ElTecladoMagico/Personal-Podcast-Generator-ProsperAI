@@ -3,7 +3,15 @@ from pathlib import Path
 
 import pytest
 
-from app.pipeline.voice import Chunk, build_timeline, chunk_turns, words_from_alignment
+from app.pipeline.voice import (
+    CHAPTER_GAP,
+    SPLIT_GAP,
+    Chunk,
+    build_timeline,
+    chunk_turns,
+    gaps,
+    words_from_alignment,
+)
 from app.schemas import Chapter, Script, Turn
 
 FIXTURE = json.loads((Path(__file__).parent / "fixtures" / "eleven_dialogue.json").read_text())
@@ -134,8 +142,17 @@ def test_record_voices_each_chunk_joins_them_and_reports_progress(tmp_path):
 
     assert calls[0] == ([(T1, "v-sarah"), (T2, "v-george")], "es", 7)
     assert progress == [(1, 2), (2, 2)] and chars == 2 * (len(T1) + len(T2))
-    assert duration(out) == pytest.approx(2 * 5.36 / SPEED, abs=0.15)  # sped up after joining
-    assert timed.chapters[1].start_s == pytest.approx(duration(tone) / SPEED, abs=0.01)
+    # a pause between the chapters, then sped up; the transcript accounts for the pause
+    assert duration(out) == pytest.approx((2 * 5.36 + CHAPTER_GAP) / SPEED, abs=0.15)
+    assert timed.chapters[1].start_s == pytest.approx(
+        (duration(tone) + CHAPTER_GAP) / SPEED, abs=0.01
+    )
+
+
+def test_pauses_mark_a_new_chapter_more_than_a_split_one():
+    plan = [[(0, 0), (0, 1)], [(1, 0)], [(1, 1)]]  # chapter 1 was split in two requests
+    assert gaps(plan) == [CHAPTER_GAP, SPLIT_GAP, 0.0]
+    assert CHAPTER_GAP > SPLIT_GAP > 0
 
 
 def test_timeline_follows_a_sped_up_mp3():

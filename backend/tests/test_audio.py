@@ -2,10 +2,10 @@ import subprocess
 
 import pytest
 
-from app.audio import concat_mp3, duration
+from app.audio import duration
 
 
-def tone(path, seconds: float, freq: int) -> None:
+def tone(path, seconds: float, freq: int, volume: float = 1.0) -> None:
     subprocess.run(
         [
             "ffmpeg",
@@ -15,6 +15,8 @@ def tone(path, seconds: float, freq: int) -> None:
             "lavfi",
             "-i",
             f"sine=frequency={freq}:duration={seconds}",
+            "-af",
+            f"volume={volume}",
             "-c:a",
             "libmp3lame",
             "-b:a",
@@ -25,15 +27,6 @@ def tone(path, seconds: float, freq: int) -> None:
         ],
         check=True,
     )
-
-
-def test_concat_keeps_the_real_total_duration(tmp_path):
-    a, b, out = tmp_path / "a.mp3", tmp_path / "b.mp3", tmp_path / "out.mp3"
-    tone(a, 1, 440)
-    tone(b, 1.5, 660)
-    concat_mp3([a, b], out)
-    assert duration(a) == pytest.approx(1.0, abs=0.06)
-    assert duration(out) == pytest.approx(2.5, abs=0.1)
 
 
 def test_duration_of_a_missing_file_fails(tmp_path):
@@ -48,3 +41,38 @@ def test_change_tempo_shortens_by_the_factor(tmp_path):
     tone(src, 2.2, 440)
     change_tempo(src, out, 1.1)
     assert duration(out) == pytest.approx(2.0, abs=0.08)
+
+
+def mean_volume(path, start: float, seconds: float) -> float:
+    out = subprocess.run(
+        ["ffmpeg", "-hide_banner", "-ss", str(start), "-t", str(seconds), "-i", str(path),
+         "-af", "volumedetect", "-f", "null", "-"],
+        capture_output=True, text=True, check=True,
+    ).stderr  # fmt: skip
+    return float(out.split("mean_volume:")[1].split("dB")[0])
+
+
+def integrated_lufs(path) -> float:
+    out = subprocess.run(
+        ["ffmpeg", "-hide_banner", "-i", str(path), "-af", "ebur128", "-f", "null", "-"],
+        capture_output=True, text=True, check=True,
+    ).stderr  # fmt: skip
+    return float(out.rsplit(" I:", 1)[1].split("LUFS")[0])
+
+
+def test_assemble_adds_pauses_keeps_each_chunk_and_sets_podcast_loudness(tmp_path):
+    from app.audio import LOUDNESS_LUFS, assemble
+
+    loud, quiet, out = tmp_path / "loud.mp3", tmp_path / "quiet.mp3", tmp_path / "out.mp3"
+    tone(loud, 3, 440, volume=0.9)
+    tone(quiet, 3, 440, volume=0.15)  # ~15 dB quieter
+    assemble([loud, quiet], [1.0, 0.0], out, speed=1.1)
+
+    assert duration(out) == pytest.approx((3 + 1 + 3) / 1.1, abs=0.15)
+    assert mean_volume(out, 3.1 / 1.1, 0.6) < -60  # the pause is silence
+    # Chunks are NOT evened out one by one: a chunk mixes both hosts, so that would move the
+    # quieter host's level with every chapter (measured on sample.mp3). Only the whole episode
+    # is brought to podcast loudness.
+    first, second = mean_volume(out, 0.3, 2), mean_volume(out, 4.0 / 1.1 + 0.3, 2)
+    assert first - second == pytest.approx(15.6, abs=1.5)
+    assert integrated_lufs(out) == pytest.approx(LOUDNESS_LUFS, abs=1.0)
