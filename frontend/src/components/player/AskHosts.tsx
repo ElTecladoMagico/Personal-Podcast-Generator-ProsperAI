@@ -1,47 +1,41 @@
-import { MessageCircleQuestion, SendHorizontal } from 'lucide-react'
+import { SendHorizontal } from 'lucide-react'
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { ApiError } from '@/lib/api'
-import { activeTurn, type Answer, resumeAt, useAsk } from '@/lib/ask'
+import { activeTurn, type Answer, useAsk } from '@/lib/ask'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { hostColor } from './hostColor'
 
 const SUGGESTIONS = ['ask.s1', 'ask.s2', 'ask.s3', 'ask.s4'] as const
 
-/** Pause, ask, hear the hosts answer from the story's sources, and carry on (ADR 0014). */
-export function AskHosts({ episodeId, hosts, pause, resume }: {
+/** The hosts answer a question about the story at `at` seconds, out loud (ADR 0014). The page
+ *  pauses the episode before opening this (`at` set) and resumes it in `onClose`. */
+export function AskHosts({ episodeId, hosts, at, onClose }: {
   episodeId: string
   hosts: string[]
-  pause: () => number // pauses the episode and returns where it was
-  resume: (t: number) => void
+  at: number | null // where the episode was paused; null = closed
+  onClose: () => void
 }) {
   const { t } = useT()
   const ask = useAsk(episodeId)
   const answerAudio = useRef<HTMLAudioElement>(null)
-  const pausedAt = useRef(0)
-  const [open, setOpen] = useState(false)
   const [question, setQuestion] = useState('')
   const [history, setHistory] = useState<{ question: string; answer: Answer }[]>([])
   const [clock, setClock] = useState({ time: 0, duration: 0, playing: false })
 
-  const start = () => {
-    pausedAt.current = pause()
-    setOpen(true)
-  }
-  // Closing (button, Esc or tapping outside) stops the answer and gives the episode back.
+  // Closing (button, Esc, tapping outside or the answer ending) stops the answer.
   const close = () => {
     answerAudio.current?.pause()
-    setOpen(false)
-    resume(resumeAt(pausedAt.current))
+    onClose()
   }
   const send = (text: string) => {
     const q = text.trim()
     if (q.length < 3 || ask.isPending) return
-    ask.mutate({ question: q, position_s: pausedAt.current }, {
+    ask.mutate({ question: q, position_s: at ?? 0 }, {
       onSuccess: (answer) => {
         setHistory((h) => [...h, { question: q, answer }])
         setQuestion('')
@@ -61,13 +55,10 @@ export function AskHosts({ episodeId, hosts, pause, resume }: {
 
   return (
     <>
-      <Button variant="ghost" size="sm" onClick={start} aria-label={t('ask.button')}>
-        <MessageCircleQuestion /> <span className="max-sm:hidden">{t('ask.button')}</span>
-      </Button>
       <audio ref={answerAudio} preload="auto" onEnded={close}
         onTimeUpdate={(e) => setClock({ time: e.currentTarget.currentTime, duration: e.currentTarget.duration, playing: true })}
         onPause={() => setClock((c) => ({ ...c, playing: false }))} />
-      <Sheet open={open} onOpenChange={(o) => !o && close()}>
+      <Sheet open={at !== null} onOpenChange={(o) => !o && close()}>
         <SheetContent side="bottom" className="mx-auto max-h-[85svh] w-full max-w-2xl gap-0 rounded-t-2xl">
           <SheetHeader>
             <SheetTitle className="font-heading text-2xl font-normal">{t('ask.button')}</SheetTitle>

@@ -29,7 +29,7 @@ export function Controls({ playing, time, duration, rate, onToggle, onSeek, onRa
       <Button variant="ghost" size="icon" aria-label={t('player.forward')} onClick={() => onSeek(time + 30)} disabled={disabled}>
         <RotateCw />
       </Button>
-      <span className="ml-2 text-sm text-muted-foreground tabular-nums">
+      <span className="ml-2 text-sm whitespace-nowrap text-muted-foreground tabular-nums">
         {clock(time)} / {clock(duration)}
       </span>
       <Button variant="ghost" size="sm" className="ml-auto tabular-nums" aria-label={`${rate}× · ${t('player.speed')}`} disabled={disabled}

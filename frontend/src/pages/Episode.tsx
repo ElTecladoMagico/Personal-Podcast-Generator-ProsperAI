@@ -1,3 +1,4 @@
+import { MessageCircleQuestion } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 import { EpisodeCover } from '@/components/EpisodeCover'
@@ -13,6 +14,7 @@ import { coverSeed, type EpisodeDetail, useEpisode } from '@/lib/episodes'
 import { useT } from '@/lib/i18n'
 import { chapterSegments, isSkip, locate, type Script } from '@/lib/timeline'
 import { AskHosts } from '@/components/player/AskHosts'
+import { resumeAt } from '@/lib/ask'
 import { useAudio } from '@/lib/useAudio'
 import { useTrack } from '@/lib/useTrack'
 
@@ -43,6 +45,17 @@ function Player({ episode, script }: { episode: EpisodeDetail; script: Script })
   const speaker = chapter?.turns[position.turn]?.speaker ?? 0
   const sources = useMemo(() => episode.sources ?? {}, [episode.sources])
   const [votes, setVotes] = useState(episode.votes) // saved ones, so a reload keeps them
+  // "Ask the hosts": pause, remember where, and pick the episode up 2 s earlier afterwards.
+  const [askAt, setAskAt] = useState<number | null>(null)
+  const startAsk = () => {
+    audioRef.current?.pause()
+    setAskAt(audioRef.current?.currentTime ?? player.time)
+  }
+  const endAsk = () => {
+    player.seek(resumeAt(askAt ?? 0))
+    setAskAt(null)
+    void audioRef.current?.play()
+  }
 
   // --- analytics ------------------------------------------------------------------
   const started = useRef(false)
@@ -111,12 +124,13 @@ function Player({ episode, script }: { episode: EpisodeDetail; script: Script })
   return (
     <div className="relative">
       {episode.audio_url && <audio ref={audioRef} src={episode.audio_url} preload="metadata" />}
+      <AskHosts episodeId={episode.id} hosts={episode.hosts} at={askAt} onClose={endAsk} />
       <Backdrop id={episode.id} playing={player.playing} />
       <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_1fr]">
         <section className="space-y-5 lg:sticky lg:top-20 lg:self-start">
           {chapter?.story_id ? (
             <StoryCard chapter={chapter} sources={storySources} vote={votes[chapter.story_id]} onVote={vote}
-              onSkip={isLast ? undefined : () => goToChapter(1)} />
+              onSkip={isLast ? undefined : () => goToChapter(1)} onAsk={episode.audio_url ? startAsk : undefined} />
           ) : (
             <EpisodeCover id={episode.id} topics={episode.topics} className="w-full max-w-sm" />
           )}
@@ -131,15 +145,9 @@ function Player({ episode, script }: { episode: EpisodeDetail; script: Script })
               <ChapterBar segments={segments} time={player.time} active={position.chapter} onSeek={seek} />
               <Controls playing={player.playing} time={player.time} duration={duration} rate={player.rate}
                 onToggle={player.toggle} onSeek={seek} onRate={player.setRate}>
-                <AskHosts episodeId={episode.id} hosts={episode.hosts}
-                  pause={() => {
-                    audioRef.current?.pause()
-                    return audioRef.current?.currentTime ?? player.time
-                  }}
-                  resume={(t) => {
-                    player.seek(t)
-                    void audioRef.current?.play()
-                  }} />
+                <Button variant="outline" size="icon" onClick={startAsk} aria-label={t('ask.button')} title={t('ask.button')}>
+                  <MessageCircleQuestion className="text-primary" />
+                </Button>
               </Controls>
             </div>
           ) : (

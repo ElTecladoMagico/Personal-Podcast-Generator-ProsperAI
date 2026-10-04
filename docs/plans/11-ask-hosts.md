@@ -64,3 +64,4 @@
 - **Dashboard:** "Ask the hosts" en *Feature adoption* (porcentaje de oyentes activos que preguntan, preguntas y latencia p50 · p95); `ask_asked` cuenta como actividad. El seed simula un 20 % de oyentes que preguntan, con la latencia medida (~10 s).
 - **Landing:** se mantiene "Con fuentes" (la verificación es el rasgo más diferencial); "Preguntar" se descubre en el reproductor.
 - Informe TDD: [`docs/testing/11-ask-hosts.tdd.md`](../testing/11-ask-hosts.tdd.md).
+- **Más visible (2026-10-04):** botón "Pregunta sobre esta historia" en la tarjeta de la historia en curso (contextual: la pregunta va sobre ella) + icono en los controles (para la intro y la despedida). El estado "preguntando" (posición de la pausa, abrir y reanudar) pasa a la página y `AskHosts` solo muestra la hoja. Un primer texto más largo no se partía y ensanchaba la página en móvil a 411 px → texto corto y con salto de línea; 390 px sin scroll, Lighthouse 100.
