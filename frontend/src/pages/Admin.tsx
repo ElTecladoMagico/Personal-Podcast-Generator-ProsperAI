@@ -120,11 +120,13 @@ function Dashboard({ m }: { m: Metrics }) {
           <TopicTable topics={content.topics} />
         </Panel>
         <Panel title="Feature adoption" className="lg:col-span-2"
-          why="Two bets of the product: delivery to podcast apps, and setting it up in seconds by importing from your AI."
-          definition="Podcast app: share of active listeners with a feed download. Import: share of completed onboardings that used “Import from your AI”.">
-          <div className="grid grid-cols-2 gap-4">
+          why="Three bets of the product: delivery to podcast apps, setting it up in seconds by importing from your AI, and asking the hosts while listening."
+          definition="Podcast app: share of active listeners with a feed download. Import: share of completed onboardings that used “Import from your AI”. Ask: share of active listeners who asked the hosts, and seconds until the answer is ready (p50 · p95).">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <Stat label="Listen in a podcast app" value={pct(content.rss_adoption)} note="of active listeners" />
             <Stat label="Onboarded by importing" value={pct(content.import_share)} note="of finished onboardings" />
+            <Stat label="Ask the hosts" value={pct(content.ask.askers_share)}
+              note={`${content.ask.questions} questions · answer in ${fmtSeconds(content.ask.p50_latency_s)} · ${fmtSeconds(content.ask.p95_latency_s)}`} />
           </div>
         </Panel>
       </div>

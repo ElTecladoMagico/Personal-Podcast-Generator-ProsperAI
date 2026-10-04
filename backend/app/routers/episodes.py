@@ -1,11 +1,13 @@
 """Episodes for the signed-in user: generate now, list, follow progress, retry."""
 
+import logging
+import time
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Literal
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, StringConstraints
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, func, select
 
@@ -14,12 +16,14 @@ from app.config import settings
 from app.db import DbSession
 from app.jobs import run_in_pool
 from app.models import Episode, Event, User
+from app.pipeline import ask
 from app.pipeline.run import new_episode
 from app.pipeline.state import Progress, Work
-from app.schemas import Script
+from app.schemas import Host, Script, Turn
 from app.storage import audio_url
 
 router = APIRouter(prefix="/episodes")
+log = logging.getLogger(__name__)
 
 Vote = Literal["up", "down"]
 
@@ -175,3 +179,73 @@ def retry(episode_id: uuid.UUID, user: CurrentUser, session: DbSession) -> Episo
         raise HTTPException(409, "An episode is already being produced") from None
     run_in_pool(ep.id)
     return detail(session, ep, user)
+
+
+class AskIn(BaseModel):
+    question: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=300)]
+    position_s: float = 0
+
+
+class AskOut(BaseModel):
+    qid: str
+    turns: list[Turn]
+    audio_url: str
+
+
+ASKS_PER_HOUR = 10  # per episode: each answer costs an LLM call and some voice
+
+
+@router.post("/{episode_id}/ask")
+def ask_hosts(episode_id: uuid.UUID, body: AskIn, user: CurrentUser, session: DbSession) -> AskOut:
+    """The hosts answer a question about the story being played, out loud (ADR 0014)."""
+    ep = own_episode(session, user, episode_id)
+    if ep.status != "ready" or not ep.script:
+        raise HTTPException(409, "The episode isn't ready yet")
+    asked = session.exec(
+        select(func.count()).where(
+            Event.episode_id == ep.id,
+            Event.type == "ask_asked",
+            Event.ts >= datetime.now(UTC) - timedelta(hours=1),
+        )
+    ).one()
+    if asked >= ASKS_PER_HOUR:
+        raise HTTPException(429, "That's a lot of questions! Try again in a while.")
+
+    script, snapshot = Script.model_validate(ep.script), ep.prefs_snapshot
+    chapter = ask.chapter_at(script, body.position_s)
+    t0 = time.perf_counter()
+    try:
+        qid, turns, usage = ask.answer(
+            question=body.question,
+            script=script,
+            chapter=chapter,
+            articles=Work.model_validate(ep.work).articles,
+            hosts=[Host.model_validate(h) for h in snapshot["hosts"]],
+            fmt=snapshot.get("format", "duo"),
+            language=ep.language,
+            listener=user.display_name,
+            seed=ep.id.int % 2**31,  # the episode's seed: the same voices
+            user_id=user.id,
+            episode_id=ep.id,
+        )
+    except Exception as err:
+        log.exception("ask failed for episode %s", ep.id)
+        raise HTTPException(502, "The hosts couldn't answer right now. Try again.") from err
+    session.add(
+        Event(
+            user_id=user.id,
+            type="ask_asked",
+            episode_id=ep.id,
+            props={
+                "question": body.question,
+                "position_s": body.position_s,
+                "chapter_index": chapter,
+                "latency_s": round(time.perf_counter() - t0, 2),
+                "chars": usage.tts_chars,
+                "llm_usd": usage.llm_usd,
+            },
+        )
+    )
+    session.commit()
+    url = f"{settings.public_base_url}/audio/{ep.id}/ask-{qid}.mp3?k={user.feed_token}"
+    return AskOut(qid=qid, turns=turns, audio_url=url)

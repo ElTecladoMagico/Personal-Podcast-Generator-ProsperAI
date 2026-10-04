@@ -6,6 +6,7 @@ scheduler thread that starts the episodes that are due and removes old audio.
 """
 
 import logging
+import shutil
 import threading
 import uuid
 from collections.abc import Callable
@@ -85,7 +86,7 @@ def enqueue_due(
 
 
 def cleanup_audio(now: datetime) -> int:
-    """Delete MP3s older than 30 days; the episode and its transcript stay (ADR 0004)."""
+    """Delete MP3s (and their answers) older than 30 days; the episode and transcript stay."""
     cutoff = now - timedelta(days=AUDIO_KEEP_DAYS)
     with Session(engine) as session:
         old = session.exec(
@@ -97,7 +98,9 @@ def cleanup_audio(now: datetime) -> int:
         ).all()
         for ep in old:
             if ep.audio_path:
-                audio_file(ep.audio_path).unlink(missing_ok=True)
+                mp3 = audio_file(ep.audio_path)
+                mp3.unlink(missing_ok=True)
+                shutil.rmtree(mp3.with_suffix(""), ignore_errors=True)  # "Ask the hosts" answers
             ep.audio_expired = True
         session.commit()
         return len(old)

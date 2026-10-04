@@ -107,6 +107,8 @@ def dataset():
         event(ana, "feed_download", at(30), e1)
         event(bea, "listen_progress", at(1, month=10), e2, max_position_s=50, duration_s=200)
         event(bea, "feedback", at(1, month=10), e2, story_id="s1", value="down")
+        event(bea, "ask_asked", at(1, month=10), e2, latency_s=4.0, chapter_index=1)
+        event(bea, "ask_asked", at(1, 12, month=10), e2, latency_s=6.0, chapter_index=1)
         event(mock, "listen_progress", at(27), e4, max_position_s=100, duration_s=100)
         s.commit()
 
@@ -152,6 +154,13 @@ def test_content_completion_skips_topics_and_rss():
     topics = {t["topic"]: t for t in c["topics"]}
     assert topics["IA"]["thumbs_up"] == 0.5 and topics["F1"]["skip_rate"] == 1.0
     assert c["rss_adoption"] == 0.5 and c["import_share"] == pytest.approx(1 / 3)
+    # Bea asked the hosts twice: 1 of the 2 active listeners, median latency 5 s
+    assert c["ask"] == {
+        "questions": 2,
+        "askers_share": 0.5,
+        "p50_latency_s": 5.0,
+        "p95_latency_s": 5.9,
+    }
 
 
 def test_operations_latency_failures_cost_and_fact_checking():

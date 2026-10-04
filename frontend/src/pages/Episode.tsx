@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { coverSeed, type EpisodeDetail, useEpisode } from '@/lib/episodes'
 import { useT } from '@/lib/i18n'
 import { chapterSegments, isSkip, locate, type Script } from '@/lib/timeline'
+import { AskHosts } from '@/components/player/AskHosts'
 import { useAudio } from '@/lib/useAudio'
 import { useTrack } from '@/lib/useTrack'
 
@@ -129,7 +130,17 @@ function Player({ episode, script }: { episode: EpisodeDetail; script: Script })
             <div className="space-y-2 max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-20 max-lg:border-t max-lg:bg-background/90 max-lg:px-4 max-lg:pt-3 max-lg:pb-[max(0.75rem,env(safe-area-inset-bottom))] max-lg:backdrop-blur">
               <ChapterBar segments={segments} time={player.time} active={position.chapter} onSeek={seek} />
               <Controls playing={player.playing} time={player.time} duration={duration} rate={player.rate}
-                onToggle={player.toggle} onSeek={seek} onRate={player.setRate} />
+                onToggle={player.toggle} onSeek={seek} onRate={player.setRate}>
+                <AskHosts episodeId={episode.id} hosts={episode.hosts}
+                  pause={() => {
+                    audioRef.current?.pause()
+                    return audioRef.current?.currentTime ?? player.time
+                  }}
+                  resume={(t) => {
+                    player.seek(t)
+                    void audioRef.current?.play()
+                  }} />
+              </Controls>
             </div>
           ) : (
             <p className="rounded-lg border border-signal/40 p-3 text-sm text-muted-foreground">{t('player.expired')}</p>

@@ -1,11 +1,12 @@
 import { Pause, Play, RotateCcw, RotateCw } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/lib/i18n'
 
 const RATES = [0.8, 1, 1.25, 1.5, 2]
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 
-export function Controls({ playing, time, duration, rate, onToggle, onSeek, onRate, disabled }: {
+export function Controls({ playing, time, duration, rate, onToggle, onSeek, onRate, disabled, children }: {
   playing: boolean
   time: number
   duration: number
@@ -14,6 +15,7 @@ export function Controls({ playing, time, duration, rate, onToggle, onSeek, onRa
   onSeek: (t: number) => void
   onRate: (r: number) => void
   disabled?: boolean
+  children?: ReactNode // extra actions at the end of the row
 }) {
   const { t } = useT()
   return (
@@ -34,6 +36,7 @@ export function Controls({ playing, time, duration, rate, onToggle, onSeek, onRa
         onClick={() => onRate(RATES[(RATES.indexOf(rate) + 1) % RATES.length])}>
         {rate}×
       </Button>
+      {children}
     </div>
   )
 }

@@ -78,6 +78,9 @@ def test_audio_older_than_30_days_is_deleted_but_the_episode_stays(tmp_path, mon
             )
             relpath, path = storage.new_audio_file(u.id, ep.id)
             path.write_bytes(b"mp3")
+            answer = storage.audio_file(storage.ask_relpath(u.id, ep.id, "abcd1234"))
+            answer.parent.mkdir(parents=True)
+            answer.write_bytes(b"answer")  # an "Ask the hosts" reply
             ep.audio_path, files[name] = relpath, (ep.id, path)
             s.add(ep)
         s.commit()
@@ -86,6 +89,7 @@ def test_audio_older_than_30_days_is_deleted_but_the_episode_stays(tmp_path, mon
     with Session(engine) as s:
         old_id, old_path = files["old"]
         assert not old_path.exists() and s.get(Episode, old_id).audio_expired
+        assert not old_path.with_suffix("").exists()  # its answers folder too
         recent_id, recent_path = files["recent"]
         assert recent_path.exists() and not s.get(Episode, recent_id).audio_expired
     assert jobs.cleanup_audio(NOW) == 0  # already expired ones are not touched again
