@@ -1,6 +1,6 @@
 # Personal Podcast Generator — solution
 
-**Live demo:** <https://podcast.scuda.es> · **Best episode:** [`sample.mp3`](sample.mp3) (English) and [`sample-es.mp3`](sample-es.mp3) (Spain Spanish) · **Code:** this repo
+**Live demo:** <https://podcast.scuda.es> · **Best episodes:** [`sample.mp3`](sample.mp3) (English, 10 min, [transcript with sources](docs/sample-transcript.md)) and [`sample-es.mp3`](sample-es.mp3) (Spain Spanish, 5 min, [transcript](docs/sample-transcript-es.md)) · **Code:** this repo
 
 A listener tells the app what they care about. Every day, at the time they choose, a small "newsroom" of
 LLM steps reads today's news on those topics, picks the stories worth their time, writes a two-host
