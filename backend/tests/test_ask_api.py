@@ -7,16 +7,17 @@ from app.models import Episode, Event, User
 from app.pipeline import ask
 from app.schemas import Usage
 
-PREFS = {"language": "es", "format": "duo",
-         "hosts": [{"name": "Sara", "voice_id": "v1"}, {"name": "Martín", "voice_id": "v2"}]}  # fmt: skip
+HOSTS = [{"name": "Sara", "voice_id": "v1"}, {"name": "Martín", "voice_id": "v2"}]
+PREFS = {"language": "es", "format": "duo", "hosts": HOSTS}
 SCRIPT = {"title": "T", "summary": "S", "chapters": [
     {"story_id": None, "title": "Intro", "start_s": 0, "end_s": 10,
      "turns": [{"speaker": 0, "text": "Hola", "source_ids": []}]},
     {"story_id": "s1", "title": "IA", "start_s": 10, "end_s": 60,
      "turns": [{"speaker": 1, "text": "Europa regula la IA", "source_ids": ["a1"]}]},
 ]}  # fmt: skip
-WORK = {"articles": [{"id": "a1", "story_id": "s1", "url": "https://x.test/a", "source": "x.test",
-                      "title": "A", "text": "La UE aprueba la ley.", "image_url": None}]}  # fmt: skip
+ARTICLE = {"id": "a1", "story_id": "s1", "url": "https://x.test/a", "source": "x.test",
+           "title": "A", "text": "La UE aprueba la ley.", "image_url": None}  # fmt: skip
+WORK = {"articles": [ARTICLE]}
 
 
 @pytest.fixture
@@ -100,6 +101,6 @@ def test_only_ready_episodes_and_short_questions(client, episode, fakes):
 
 def test_ten_questions_per_episode_and_hour(client, episode, fakes):
     ep_id, _ = episode
-    codes = [client.post(f"/episodes/{ep_id}/ask", json={"question": "¿Y ahora?", "position_s": 30}).status_code
-             for _ in range(11)]  # fmt: skip
+    question = {"question": "¿Y ahora?", "position_s": 30}
+    codes = [client.post(f"/episodes/{ep_id}/ask", json=question).status_code for _ in range(11)]
     assert codes[:10] == [200] * 10 and codes[10] == 429

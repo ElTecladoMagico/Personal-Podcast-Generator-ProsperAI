@@ -24,7 +24,7 @@ def test_in_the_intro_or_outro_it_is_about_the_closest_story():
 def test_answer_is_cleaned_like_the_script_and_kept_short():
     answer = AskAnswer(turns=[
         AskTurn(speaker=5, text="**Buena pregunta** https://x.test", source_ids=["a1", "zz"]),
-        AskTurn(speaker=0, text="a" * 500, source_ids=[]),
+        AskTurn(speaker=0, text="a" * 600, source_ids=[]),
     ])  # fmt: skip
     turns = to_turns(answer, article_ids={"a1"}, hosts=2)
     assert turns[0].speaker == 1 and turns[0].text == "Buena pregunta"
