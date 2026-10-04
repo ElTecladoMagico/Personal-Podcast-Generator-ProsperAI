@@ -15,6 +15,16 @@ simulated listeners (clearly marked and switchable off).
 
 ## 1. Try it in 3 minutes
 
+> **Voice credits:** the ElevenLabs quota for this challenge ran out while generating the final
+> samples, so **new episodes and the hosts' spoken answers can't be produced right now** (they stop at
+> the *Recording* step and offer *Retry*; nothing else breaks). Everything already produced still works.
+> To see it all live, use the **demo account** below, or contact me and I'll top the quota up for a live demo.
+>
+> **Demo account (no sign-up):** on the site press **Sign in** → `e2e+clerk_test@example.com` →
+> *Use another method* → *Email code* → `424242`. It has real episodes in Spain Spanish, the private feed
+> and the admin dashboard. The language switch (top bar) turns the interface to English.
+
+
 1. Open <https://podcast.scuda.es> → **Get started** → sign up with an email (you get a code) or Google.
 2. **Onboarding (5 short steps).** Type a few interests or press **Import from your AI**: copy the
    prompt into ChatGPT / Claude / Gemini, paste its answer back, and your interests, weights, topics
