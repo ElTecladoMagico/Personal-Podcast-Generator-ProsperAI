@@ -11,9 +11,9 @@
       "id": "listener",
       "type": "external",
       "label": "Listener",
-      "sublabel": "browser / mobile PWA",
+      "sublabel": "browser · mobile",
       "pos": [
-        30,
+        20,
         300
       ],
       "size": [
@@ -27,7 +27,7 @@
       "label": "Clerk",
       "sublabel": "sign-in · JWT · admin role",
       "pos": [
-        210,
+        190,
         110
       ],
       "size": [
@@ -42,7 +42,7 @@
       "sublabel": "React + Vite + shadcn",
       "tag": "app + /admin",
       "pos": [
-        210,
+        190,
         300
       ],
       "size": [
@@ -54,9 +54,9 @@
       "id": "podcast_apps",
       "type": "external",
       "label": "Podcast apps",
-      "sublabel": "Apple · Overcast",
+      "sublabel": "Apple · Pocket Casts",
       "pos": [
-        30,
+        20,
         480
       ],
       "size": [
@@ -67,10 +67,10 @@
     {
       "id": "caddy",
       "type": "cloud",
-      "label": "Caddy",
-      "sublabel": "auto-HTTPS reverse proxy",
+      "label": "Caddy edge",
+      "sublabel": "shared HTTPS proxy",
       "pos": [
-        480,
+        420,
         300
       ],
       "size": [
@@ -82,9 +82,9 @@
       "id": "api",
       "type": "backend",
       "label": "FastAPI",
-      "sublabel": "REST · RSS · mp3",
+      "sublabel": "REST · RSS · mp3 · ask",
       "pos": [
-        700,
+        620,
         300
       ],
       "size": [
@@ -98,11 +98,11 @@
       "label": "PostgreSQL",
       "sublabel": "users · episodes · events",
       "pos": [
-        960,
+        860,
         440
       ],
       "size": [
-        200,
+        190,
         64
       ]
     },
@@ -110,9 +110,9 @@
       "id": "scheduler",
       "type": "backend",
       "label": "Scheduler",
-      "sublabel": "APScheduler · every 10 min",
+      "sublabel": "thread · every 60 s",
       "pos": [
-        440,
+        400,
         620
       ],
       "size": [
@@ -126,7 +126,7 @@
       "label": "Episode pipeline",
       "sublabel": "6 steps · thread pool",
       "pos": [
-        700,
+        620,
         620
       ],
       "size": [
@@ -138,13 +138,13 @@
       "id": "audio",
       "type": "database",
       "label": "Audio volume",
-      "sublabel": "/data/audio/*.mp3",
+      "sublabel": "mp3 · 30-day cleanup",
       "pos": [
-        960,
+        860,
         628
       ],
       "size": [
-        200,
+        190,
         64
       ]
     },
@@ -152,13 +152,13 @@
       "id": "news",
       "type": "external",
       "label": "News sources",
-      "sublabel": "RSS · Exa · HN",
+      "sublabel": "Google News · Exa · HN",
       "pos": [
-        300,
+        240,
         860
       ],
       "size": [
-        200,
+        190,
         64
       ]
     },
@@ -168,7 +168,7 @@
       "label": "Publisher sites",
       "sublabel": "article scraping",
       "pos": [
-        530,
+        460,
         860
       ],
       "size": [
@@ -180,9 +180,9 @@
       "id": "openai",
       "type": "external",
       "label": "OpenAI",
-      "sublabel": "editor · writer · checker",
+      "sublabel": "edit · write · check · ask",
       "pos": [
-        730,
+        650,
         860
       ],
       "size": [
@@ -196,11 +196,11 @@
       "label": "ElevenLabs",
       "sublabel": "eleven_v3 dialogue",
       "pos": [
-        940,
+        860,
         860
       ],
       "size": [
-        200,
+        190,
         64
       ]
     }
@@ -354,32 +354,32 @@
       "dot": "cyan",
       "title": "Episode pipeline (newsroom)",
       "items": [
-        "1 Reporter: ~40 candidate headlines per user",
-        "2 Editor LLM: picks 5–7 stories (interests, novelty, already covered, feedback)",
-        "3 Research: scrapes full text of picked stories only",
-        "4 Scriptwriter LLM: JSON chapters + turns with sourceIds",
-        "5 Fact-checker LLM: flags unsupported turns, one rewrite round",
-        "6 Hosts: ElevenLabs per chapter, timestamps for synced transcript"
+        "1 Reporter: up to 60 candidates from Google News, Exa and Hacker News",
+        "2 Editor LLM: picks the stories (interest weights, novelty, past 👍/👎 and skips)",
+        "3 Research: full text of the picked stories (Exa text or scraping, 48 h cache)",
+        "4 Writer LLM: chapters and turns, every fact tied to an article id",
+        "5 Fact-checker LLM: flags unsupported claims, one rewrite, the rest removed",
+        "6 Voices: ElevenLabs dialogue in parallel chunks, word timestamps, ×1.1"
       ]
     },
     {
       "dot": "emerald",
       "title": "State & persistence",
       "items": [
-        "episode.status drives live progress UI, retries and ops metrics",
-        "events table feeds personalization and the /admin dashboard",
-        "FastAPI serves mp3 + RSS from the audio volume",
-        "Ask the hosts: API answers a listener question with chapter context (LLM + short TTS)"
+        "episode.status + work drive live progress, resume after a crash and retries",
+        "events table feeds the editor (feedback) and the /admin dashboard",
+        "FastAPI serves mp3 + private RSS from the volume (feed token as credential)",
+        "Ask the hosts: chapter sources → short LLM answer → same voices, then resume"
       ]
     },
     {
       "dot": "violet",
       "title": "Deliberate simplifications",
       "items": [
-        "Single VPS: scheduler and 3-thread pipeline pool inside the API process",
-        "No queue, no object storage; ffmpeg only to stitch mp3 chunks",
-        "Progress via 1.5 s polling of episode.status",
-        "Upgrade path: Cloud Run + managed Postgres + R2 + Cloud Scheduler"
+        "One process: scheduler thread + 3-thread pipeline pool inside the API",
+        "No queue or object storage: Postgres (unique index = one episode at a time) + disk",
+        "Progress via 1.5 s polling; metrics are SQL on the fly, no warehouse",
+        "Upgrade path: Cloud Run + managed Postgres + R2 + a Postgres job queue"
       ]
     }
   ]
