@@ -17,7 +17,7 @@ from elevenlabs import DialogueInput
 from elevenlabs.client import ElevenLabs
 from sqlmodel import Session
 
-from app.audio import change_tempo, concat_mp3, duration
+from app.audio import assemble, duration
 from app.config import settings
 from app.models import Episode
 from app.pipeline.state import Progress, Work, store
@@ -32,6 +32,10 @@ FORMAT = "mp3_44100_128"  # 192 kbps needs a paid Creator plan
 PARALLEL_CHUNKS = 3
 STABILITY = 0.0  # eleven_v3: 0.0 creative, 0.5 natural, 1.0 robust. Creative sounded liveliest
 SPEED = 1.1  # dialogue has no speed setting, so the joined MP3 is sped up with ffmpeg
+# Chunks come back with no silence at their edges. Without a pause, a new story started faster
+# than a normal change of speaker (measured: ~0.7 s between turns, ≤0.27 s between chapters).
+CHAPTER_GAP = 0.9  # seconds before the next chapter (before speeding up)
+SPLIT_GAP = 0.35  # when a long chapter was split into two requests
 # Both chosen by ear on 2026-10-02 (A/B in docs/plans/06b-voz-espana.md).
 
 TurnRef = tuple[int, int]  # (chapter index, turn index)
@@ -60,6 +64,14 @@ def chunk_turns(script: Script, limit: int = CHUNK_CHARS) -> list[list[TurnRef]]
         if current:
             chunks.append(current)
     return chunks
+
+
+def gaps(plan: list[list[TurnRef]]) -> list[float]:
+    """The pause after each chunk: longer before a new chapter, none after the last one."""
+    return [
+        0.0 if i == len(plan) - 1 else CHAPTER_GAP if plan[i + 1][0][0] != refs[0][0] else SPLIT_GAP
+        for i, refs in enumerate(plan)
+    ]
 
 
 def words_from_alignment(
@@ -176,17 +188,16 @@ def record(
             future.result()  # fail fast if a chunk failed
             on_progress(done, len(plan))
 
-    chunks, parts = [], []
+    chunks, parts, pauses = [], [], gaps(plan)
     with tempfile.TemporaryDirectory() as tmp:
         for i, (refs, future) in enumerate(zip(plan, futures, strict=True)):
             mp3, response = future.result()
             part = Path(tmp) / f"chunk_{i:03}.mp3"
             part.write_bytes(mp3)
             parts.append(part)
-            chunks.append(Chunk(turns=refs, response=response, duration=duration(part)))
-        joined = Path(tmp) / "joined.mp3"
-        concat_mp3(parts, joined)
-        change_tempo(joined, out, SPEED)
+            # the pause counts as part of the chunk, so the transcript timeline stays in sync
+            chunks.append(Chunk(turns=refs, response=response, duration=duration(part) + pauses[i]))
+        assemble(parts, pauses, out, SPEED)
     chars = sum(len(text) for chunk in inputs for text, _ in chunk)
     return build_timeline(script, chunks, SPEED), chars
 

@@ -1,34 +1,29 @@
-"""MP3 assembly with ffmpeg (ADR 0016): concatenate the TTS chunks and measure durations."""
+"""MP3 assembly with ffmpeg (ADR 0016): join the TTS chunks, change tempo, measure durations."""
 
 import subprocess
-import tempfile
 from pathlib import Path
 
+LOUDNESS_LUFS = -16  # podcast standard
 
-def concat_mp3(parts: list[Path], out: Path) -> None:
-    """Join MP3 chunks without re-encoding. ffmpeg (unlike a raw byte concat) rewrites the
-    Xing header, so players show the real total duration."""
-    with tempfile.NamedTemporaryFile("w", suffix=".txt") as listing:
-        listing.writelines(f"file '{Path(p).resolve()}'\n" for p in parts)
-        listing.flush()
-        subprocess.run(
-            [
-                "ffmpeg",
-                "-y",
-                "-loglevel",
-                "error",
-                "-f",
-                "concat",
-                "-safe",
-                "0",
-                "-i",
-                listing.name,
-                "-c",
-                "copy",
-                str(out),
-            ],
-            check=True,
+
+def assemble(parts: list[Path], gaps: list[float], out: Path, speed: float) -> None:
+    """One ffmpeg pass: every chunk to the same loudness (each TTS request renders the voices a
+    little louder or softer), a pause after it, all joined, sped up by `speed`, encoded once."""
+    inputs, chains = [], []
+    for i, (part, gap) in enumerate(zip(parts, gaps, strict=True)):
+        inputs += ["-i", str(part)]
+        pad = f",apad=pad_dur={gap}" if gap > 0 else ""  # apad with no length pads forever
+        chains.append(
+            f"[{i}:a]loudnorm=I={LOUDNESS_LUFS}:TP=-1.5:LRA=11,aresample=44100,"
+            f"aformat=channel_layouts=mono{pad}[a{i}]"
         )
+    joined = "".join(f"[a{i}]" for i in range(len(parts)))
+    graph = ";".join(chains) + f";{joined}concat=n={len(parts)}:v=0:a=1,atempo={speed}[out]"
+    subprocess.run(
+        ["ffmpeg", "-y", "-loglevel", "error", *inputs, "-filter_complex", graph,
+         "-map", "[out]", "-c:a", "libmp3lame", "-b:a", "128k", str(out)],
+        check=True,
+    )  # fmt: skip
 
 
 def change_tempo(src: Path, out: Path, factor: float) -> None:

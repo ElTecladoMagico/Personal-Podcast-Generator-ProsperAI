@@ -33,3 +33,12 @@ Todo vive en `app/audio.py` (2 funciones, unas 30 líneas).
 
 ## Consecuencias
 Con ffmpeg disponible se abren mejoras baratas para el futuro (normalización de volumen `loudnorm`, sintonía de entrada); no entran en el alcance actual (YAGNI).
+
+## Revisión (2026-10-04): pausas entre capítulos y volumen igualado
+Al escuchar `sample.mp3`, los cambios de tema eran bruscos y la voz parecía cambiar un poco. Medido sobre el audio:
+- entre turnos de un mismo capítulo había una pausa natural de ~0,7 s (mediana), pero **en los cambios de capítulo ≤ 0,27 s o ninguna**: cada trozo de ElevenLabs llega sin silencio en los bordes y se unían pegados;
+- cada capítulo es una petición distinta y, en modo *creative*, el volumen de una voz variaba **el doble entre capítulos que dentro de uno** (1,5 dB frente a 0,76 dB; la otra voz, 0,4 dB).
+
+Ahora `audio.assemble` hace en **un solo paso de ffmpeg**: `loudnorm` de cada trozo a −16 LUFS (estándar de podcast), una pausa después (0,9 s antes de un capítulo nuevo, 0,35 s si un capítulo largo se partió), la unión y el ×1,1, con una sola codificación. La pausa cuenta en la duración del trozo, así que la transcripción sigue sincronizada. Sin coste extra de ElevenLabs. `concat_mp3` desaparece.
+
+Queda (decisión de producto): el timbre sigue variando algo entre peticiones con `stability = 0.0`; con 0,5 (*natural*) varía menos pero suena menos viva (ver la prueba A/B del [0008](0008-tts.md)).
