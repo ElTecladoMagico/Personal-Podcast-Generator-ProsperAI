@@ -1,4 +1,4 @@
-import { SkipForward, ThumbsDown, ThumbsUp } from 'lucide-react'
+import { MessageCircleQuestion, SkipForward, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { components } from '@/lib/api-types'
 import { format, useT } from '@/lib/i18n'
@@ -9,12 +9,13 @@ type Source = components['schemas']['Source']
 const favicon = (url: string) => `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`
 
 /** The story being told: picture, headline, the outlets behind it, and what you think of it. */
-export function StoryCard({ chapter, sources, vote, onVote, onSkip }: {
+export function StoryCard({ chapter, sources, vote, onVote, onSkip, onAsk }: {
   chapter: Chapter
   sources: Source[]
   vote: 'up' | 'down' | undefined
   onVote: (value: 'up' | 'down') => void
   onSkip?: () => void
+  onAsk?: () => void
 }) {
   const { t } = useT()
   const image = sources.find((s) => s.image_url)?.image_url
@@ -33,6 +34,11 @@ export function StoryCard({ chapter, sources, vote, onVote, onSkip }: {
             </li>
           ))}
         </ul>
+        {onAsk && (
+          <Button variant="secondary" className="h-auto w-full justify-start py-2 text-left whitespace-normal" onClick={onAsk}>
+            <MessageCircleQuestion className="text-primary" /> {t('ask.aboutStory')}
+          </Button>
+        )}
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" aria-label={t('player.like')} aria-pressed={vote === 'up'} onClick={() => onVote('up')}>
             <ThumbsUp className={cn(vote === 'up' && 'fill-primary text-primary')} />
