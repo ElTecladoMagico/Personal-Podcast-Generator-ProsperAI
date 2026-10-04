@@ -1,6 +1,6 @@
 # Personal Podcast Generator — solution
 
-**Live demo:** <https://podcast.scuda.es> · **Best episodes:** [`sample.mp3`](sample.mp3) (English, 10 min, [transcript with sources](docs/sample-transcript.md)) and [`sample-es.mp3`](sample-es.mp3) (Spain Spanish, 5 min, [transcript](docs/sample-transcript-es.md)) · **Code:** this repo
+**Live demo:** <https://podcast.scuda.es> · **Good episodes:** [`sample.mp3`](sample.mp3) (English, 10 min, [transcript with sources](docs/sample-transcript.md)) and [`sample-es.mp3`](sample-es.mp3) (Spain Spanish, 5 min (I personally prefer the spanigh version), [transcript](docs/sample-transcript-es.md)) · **Code:** this repo
 
 A listener tells the app what they care about. Every day, at the time they choose, a small "newsroom" of
 LLM steps reads today's news on those topics, picks the stories worth their time, writes a two-host
@@ -15,15 +15,18 @@ simulated listeners (clearly marked and switchable off).
 
 ## 1. Try it in 3 minutes
 
-> **Voice credits:** the ElevenLabs quota for this challenge ran out while generating the final
-> samples, so **new episodes and the hosts' spoken answers can't be produced right now** (they stop at
-> the *Recording* step and offer *Retry*; nothing else breaks). Everything already produced still works.
-> To see it all live, use the **demo account** below, or contact me and I'll top the quota up for a live demo.
+> **Voice credits:** the ElevenLabs key provided for the challenge ran out of quota while generating
+> the final samples, so **new episodes and the hosts' spoken answers can't be produced right now**
+> (they stop at *Recording* and offer *Retry*; nothing else breaks). Everything already produced works.
 >
-> **Demo account (no sign-up):** on the site press **Sign in** → `e2e+clerk_test@example.com` →
-> *Use another method* → *Email code* → `424242`. It has real episodes in Spain Spanish, the private feed
-> and the admin dashboard. The language switch (top bar) turns the interface to English.
-
+> - **Your own account:** anyone can sign up with their normal email (a code arrives by email) or with
+>   Google. You'll see onboarding, Settings, the feed and the live production steps, but your episode will
+>   stop at *Recording*.
+> - **Demo account, to see a full podcast:** **Sign in** → `e2e+clerk_test@example.com` → *Use another
+>   method* → *Email code* → `424242` (a Clerk test address: no email is sent). It has real episodes in
+>   Spain Spanish, the private feed and the admin dashboard. The language switch in the top bar turns
+>   the interface to English.
+> - Both best episodes can be heard in the repo: [`sample.mp3`](sample.mp3) and [`sample-es.mp3`](sample-es.mp3).
 
 1. Open <https://podcast.scuda.es> → **Get started** → sign up with an email (you get a code) or Google.
 2. **Onboarding (5 short steps).** Type a few interests or press **Import from your AI**: copy the
@@ -32,10 +35,16 @@ simulated listeners (clearly marked and switchable off).
    length, hosts (with voice previews) and the time it should arrive.
 3. Your first episode starts right away: watch the newsroom at work (stories found, outlets, stories
    picked, claims checked, recording progress). It takes 1–3 minutes.
-4. **Listen.** The transcript follows every word; tap any word to jump there. Each story shows its
-   picture and the articles behind it, 👍/👎 and *Skip story*. Press **Ask about this story**, type a
-   question (or tap a suggestion) and the hosts answer out loud from that story's sources, then the
-   episode carries on.
+4. **Listen.** In the player:
+   - **Live transcript:** the word being spoken lights up; tap any word to jump there. The small
+     numbers after each sentence are its sources.
+   - **Story card:** the article's picture, *Read on…* links to the original articles, 👍/👎 (kept after
+     a reload, and used by the editor for your next episode) and *Skip story*.
+   - **Chapter bar and controls:** −15 s, +30 s, speed from 0.8× to 2×; system media keys work too.
+   - **Keyboard:** space to play/pause, ←/→ to move 5 s, Shift + ←/→ to change chapter.
+   - **Ask about this story** (on the card, or the icon next to the controls): the episode pauses, you
+     type a question or tap a suggestion, and the hosts answer out loud from that story's sources, then
+     the episode resumes 2 s before where it stopped.
 5. **Settings → Listen in your podcast app** gives a private feed for Apple Podcasts, Pocket Casts or
    any app ("Add by URL"). New episodes arrive there on their own.
 6. **Internal dashboard:** `/admin` (users with the `admin` role in Clerk).
@@ -153,6 +162,12 @@ characters):
 or a cheaper voice tier for the long tail, and only generating for listeners who actually listen
 (skip the scheduled episode after N unheard ones). The dashboard shows cost per episode split into
 LLM and voice for exactly this reason.
+
+**What this project cost** (from the costs the app records for every episode and answer; ElevenLabs
+valued at the Creator plan price): **≈ 16 real episodes** (12 locally while building, the samples
+included, plus 2 in production) and a handful of questions to the hosts, **≈ 1 USD of OpenAI** (~300k
+tokens) and **≈ 55–60k ElevenLabs characters** (≈ 12–13 USD at list price) including voice previews and
+A/B tests, which is where the key's quota ended. Plus a few cents of Exa searches.
 
 ## 7. Scaling path (in order)
 
